@@ -5,12 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class HistoricoCreateRequest {
 
     @NotNull(message = "ID do paciente é obrigatório")
-    private UUID pacienteId;
+    private Long pacienteId;
 
     @NotBlank(message = "Descrição é obrigatória")
     @Size(min = 10, max = 2000, message = "Descrição deve ter entre 10 e 2000 caracteres")
@@ -29,11 +28,11 @@ public class HistoricoCreateRequest {
     public HistoricoCreateRequest() {}
 
     // Getters and Setters
-    public UUID getPacienteId() {
+    public Long getPacienteId() {
         return pacienteId;
     }
 
-    public void setPacienteId(UUID pacienteId) {
+    public void setPacienteId(Long pacienteId) {
         this.pacienteId = pacienteId;
     }
 

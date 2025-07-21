@@ -14,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -40,7 +39,7 @@ public class UsuarioController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @securityService.isOwner(authentication.name, #id)")
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os dados de um usuário específico")
-    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable Long id) {
         UsuarioResponse response = usuarioService.buscarPorId(id);
         return ResponseEntity.ok(response);
     }
@@ -65,7 +64,7 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN') or @securityService.isOwner(authentication.name, #id)")
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário")
     public ResponseEntity<UsuarioResponse> atualizarUsuario(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @Valid @RequestBody UsuarioCreateRequest request) {
         UsuarioResponse response = usuarioService.atualizarUsuario(id, request);
         return ResponseEntity.ok(response);
@@ -74,7 +73,7 @@ public class UsuarioController {
     @PatchMapping("/{id}/desativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar usuário", description = "Desativa um usuário do sistema")
-    public ResponseEntity<Void> desativarUsuario(@PathVariable UUID id) {
+    public ResponseEntity<Void> desativarUsuario(@PathVariable Long id) {
         usuarioService.desativarUsuario(id);
         return ResponseEntity.noContent().build();
     }
@@ -82,7 +81,7 @@ public class UsuarioController {
     @PatchMapping("/{id}/ativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ativar usuário", description = "Ativa um usuário no sistema")
-    public ResponseEntity<Void> ativarUsuario(@PathVariable UUID id) {
+    public ResponseEntity<Void> ativarUsuario(@PathVariable Long id) {
         usuarioService.ativarUsuario(id);
         return ResponseEntity.noContent().build();
     }

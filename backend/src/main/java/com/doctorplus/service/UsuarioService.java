@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -67,7 +66,7 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public UsuarioResponse buscarPorId(UUID id) {
+    public UsuarioResponse buscarPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         return usuarioMapper.toResponse(usuario);
@@ -92,7 +91,7 @@ public class UsuarioService {
         return usuarioMapper.toResponseList(usuarios);
     }
 
-    public UsuarioResponse atualizarUsuario(UUID id, UsuarioCreateRequest request) {
+    public UsuarioResponse atualizarUsuario(Long id, UsuarioCreateRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
@@ -114,7 +113,7 @@ public class UsuarioService {
         return usuarioMapper.toResponse(usuario);
     }
 
-    public void desativarUsuario(UUID id) {
+    public void desativarUsuario(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
@@ -124,7 +123,7 @@ public class UsuarioService {
         logger.info("Usuário desativado: {}", usuario.getId());
     }
 
-    public void ativarUsuario(UUID id) {
+    public void ativarUsuario(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
@@ -163,6 +162,6 @@ public class UsuarioService {
     }
 
     private String gerarCrmTemporario() {
-        return "CRM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "CRM-" + System.currentTimeMillis();
     }
 }
