@@ -12,6 +12,8 @@ import java.util.UUID;
 @Repository
 public interface HistoricoRepository extends JpaRepository<Historico, UUID> {
 
+    List<Historico> findAllByOrderByDataConsultaDesc();
+
     List<Historico> findByPacienteIdOrderByDataConsultaDesc(UUID pacienteId);
 
     List<Historico> findByProfissionalIdOrderByDataConsultaDesc(UUID profissionalId);
