@@ -164,7 +164,7 @@ export function Estoque() {
       // Refresh current page
       fetchEstoque();
 
-      const operacaoTexto = {
+      const successOperacaoTexto = {
         adicionar: 'adicionadas',
         remover: 'removidas',
         ajustar: 'ajustada para'
@@ -172,7 +172,7 @@ export function Estoque() {
 
       toast.dismiss('adjust-quantity-loading');
       toast.success('📊 Estoque atualizado com sucesso!', {
-        description: `${quantidade} ${itemParaAjuste.unidade} ${operacaoTexto} ${tipo === 'ajustar' ? '' : 'ao'} estoque de ${itemParaAjuste.nome}.`,
+        description: `${quantidade} ${itemParaAjuste.unidade} ${successOperacaoTexto[tipo]} ${tipo === 'ajustar' ? '' : 'ao'} estoque de ${itemParaAjuste.nome}.`,
         duration: 5000,
       });
     } catch (error: any) {
