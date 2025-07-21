@@ -1,7 +1,9 @@
 package com.doctorplus.exception;
 
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,6 +22,9 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @Autowired
+    private MessageService messageService;
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
@@ -28,7 +33,7 @@ public class GlobalExceptionHandler {
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
-            "Resource Not Found",
+            messageService.getMessageOrDefault("system.resource.not.found", "Resource Not Found"),
             ex.getMessage(),
             request.getDescription(false),
             LocalDateTime.now()
@@ -45,7 +50,7 @@ public class GlobalExceptionHandler {
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            "Business Rule Violation",
+            "Erro de Validação",
             ex.getMessage(),
             request.getDescription(false),
             LocalDateTime.now()
@@ -69,8 +74,8 @@ public class GlobalExceptionHandler {
 
         ValidationErrorResponse errorResponse = new ValidationErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            "Validation Failed",
-            "Dados inválidos fornecidos",
+            "Erro de Validação",
+            messageService.getMessage("system.validation.failed"),
             request.getDescription(false),
             LocalDateTime.now(),
             errors
@@ -87,8 +92,8 @@ public class GlobalExceptionHandler {
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.FORBIDDEN.value(),
-            "Access Denied",
-            "Você não tem permissão para acessar este recurso",
+            "Acesso Negado",
+            messageService.getMessage("system.access.denied"),
             request.getDescription(false),
             LocalDateTime.now()
         );
@@ -104,8 +109,8 @@ public class GlobalExceptionHandler {
         
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal Server Error",
-            "Ocorreu um erro interno no servidor",
+            "Erro Interno",
+            messageService.getMessage("system.internal.error"),
             request.getDescription(false),
             LocalDateTime.now()
         );

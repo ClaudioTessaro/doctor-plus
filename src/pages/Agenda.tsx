@@ -107,17 +107,8 @@ export function Agenda() {
     } catch (error: any) {
       console.error('Error creating consulta:', error);
       
-      let errorMessage = 'Não foi possível agendar a consulta.';
-      if (error.message.includes('Horário não disponível')) {
-        errorMessage = 'Este horário não está disponível para o profissional selecionado.';
-      } else if (error.message.includes('Paciente não encontrado')) {
-        errorMessage = 'Paciente selecionado não foi encontrado.';
-      } else if (error.message.includes('Profissional não encontrado')) {
-        errorMessage = 'Profissional selecionado não foi encontrado.';
-      }
-      
       toast.error('❌ Erro no agendamento', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível agendar a consulta.',
       });
       throw error;
     }
@@ -146,13 +137,8 @@ export function Agenda() {
     } catch (error: any) {
       console.error('Error updating consulta:', error);
       
-      let errorMessage = 'Não foi possível atualizar a consulta.';
-      if (error.message.includes('Horário não disponível')) {
-        errorMessage = 'Este horário não está disponível para o profissional selecionado.';
-      }
-      
       toast.error('❌ Erro na atualização', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível atualizar a consulta.',
       });
       throw error;
     }
@@ -223,6 +209,7 @@ export function Agenda() {
 
   const handleAlterarStatus = async (consulta: ConsultaResponse, novoStatus: string) => {
     try {
+      console.log('Alterando status da consulta:', consulta.id, 'para:', novoStatus);
       await apiClient.alterarStatusConsulta(consulta.id, novoStatus);
       
       setConsultas(prev => 

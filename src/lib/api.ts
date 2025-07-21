@@ -44,12 +44,36 @@ class ApiClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: `Erro HTTP ${response.status}` };
+        }
         console.error('API Error:', response.status, errorData);
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        
+        // Extrair mensagem de erro do backend
+        const errorMessage = errorData.message || 
+                            errorData.error || 
+                            errorData.validationErrors?.message ||
+                            `Erro HTTP ${response.status}`;
+        
+        const error = new Error(errorMessage);
+        (error as any).status = response.status;
+        (error as any).validationErrors = errorData.validationErrors;
+        throw error;
       }
 
-      const data = await response.json();
+      // Verificar se há conteúdo para fazer parse
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = null;
+      }
+      
       console.log('API Response:', data);
       return data;
     } catch (error) {

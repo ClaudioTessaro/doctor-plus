@@ -87,13 +87,8 @@ export function Estoque() {
     } catch (error: any) {
       console.error('Error creating item:', error);
       
-      let errorMessage = 'Não foi possível cadastrar o item.';
-      if (error.message.includes('Código já está em uso')) {
-        errorMessage = 'Este código já está cadastrado no sistema.';
-      }
-      
       toast.error('❌ Erro no cadastro', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível cadastrar o item.',
       });
       throw error;
     }
@@ -113,13 +108,8 @@ export function Estoque() {
     } catch (error: any) {
       console.error('Error updating item:', error);
       
-      let errorMessage = 'Não foi possível atualizar o item.';
-      if (error.message.includes('Código já está em uso')) {
-        errorMessage = 'Este código já está cadastrado para outro item.';
-      }
-      
       toast.error('❌ Erro na atualização', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível atualizar o item.',
       });
       throw error;
     }
@@ -164,13 +154,8 @@ export function Estoque() {
     } catch (error: any) {
       console.error('Error adjusting quantity:', error);
       
-      let errorMessage = 'Não foi possível ajustar a quantidade.';
-      if (error.message.includes('Quantidade insuficiente')) {
-        errorMessage = 'Quantidade insuficiente em estoque para esta operação.';
-      }
-      
       toast.error('❌ Erro no ajuste', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível ajustar a quantidade.',
       });
       throw error;
     }

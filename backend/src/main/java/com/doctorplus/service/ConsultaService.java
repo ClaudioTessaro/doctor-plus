@@ -12,6 +12,7 @@ import com.doctorplus.mapper.ConsultaMapper;
 import com.doctorplus.repository.ConsultaRepository;
 import com.doctorplus.repository.PacienteRepository;
 import com.doctorplus.repository.ProfissionalRepository;
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +34,21 @@ public class ConsultaService {
     private final ProfissionalRepository profissionalRepository;
     private final ConsultaMapper consultaMapper;
     private final EmailService emailService;
+    private final MessageService messageService;
 
     @Autowired
     public ConsultaService(ConsultaRepository consultaRepository,
                           PacienteRepository pacienteRepository,
                           ProfissionalRepository profissionalRepository,
                           ConsultaMapper consultaMapper,
-                          EmailService emailService) {
+                          EmailService emailService,
+                          MessageService messageService) {
         this.consultaRepository = consultaRepository;
         this.pacienteRepository = pacienteRepository;
         this.profissionalRepository = profissionalRepository;
         this.consultaMapper = consultaMapper;
         this.emailService = emailService;
+        this.messageService = messageService;
     }
 
     public ConsultaResponse agendarConsulta(ConsultaCreateRequest request) {
@@ -52,10 +56,10 @@ public class ConsultaService {
 
         // Buscar entidades
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.patient.not.found")));
 
         Profissional profissional = profissionalRepository.findById(request.getProfissionalId())
-                .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.professional.not.found")));
 
         // Validar disponibilidade
         validarDisponibilidade(request.getProfissionalId(), request.getDataHora(), request.getDuracaoMinutos());
@@ -81,7 +85,7 @@ public class ConsultaService {
     @Transactional(readOnly = true)
     public ConsultaResponse buscarPorId(UUID id) {
         Consulta consulta = consultaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Consulta não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
         return consultaMapper.toResponse(consulta);
     }
 
@@ -117,11 +121,11 @@ public class ConsultaService {
 
     public ConsultaResponse atualizarConsulta(UUID id, ConsultaCreateRequest request) {
         Consulta consulta = consultaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Consulta não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
 
         // Validar se pode ser alterada
         if (consulta.getStatus() == StatusConsulta.REALIZADA) {
-            throw new BusinessException("Não é possível alterar consulta já realizada");
+            throw new BusinessException(messageService.getMessage("consulta.already.realized"));
         }
 
         // Validar nova disponibilidade se data/hora foi alterada
@@ -139,7 +143,7 @@ public class ConsultaService {
 
     public ConsultaResponse alterarStatus(UUID id, StatusConsulta novoStatus) {
         Consulta consulta = consultaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Consulta não encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
 
         StatusConsulta statusAnterior = consulta.getStatus();
         consulta.setStatus(novoStatus);
@@ -201,7 +205,7 @@ public class ConsultaService {
                 .toList();
 
         if (!consultasConflitantes.isEmpty()) {
-            throw new BusinessException("Horário não disponível para o profissional");
+            throw new BusinessException(messageService.getMessage("consulta.time.unavailable"));
         }
     }
 }

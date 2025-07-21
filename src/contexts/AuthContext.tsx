@@ -78,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error('🔒 Falha na autenticação', {
         description: error.message || 'Verifique suas credenciais e tente novamente.',
       });

@@ -11,6 +11,7 @@ import com.doctorplus.mapper.PacienteMapper;
 import com.doctorplus.repository.PacienteRepository;
 import com.doctorplus.repository.UsuarioRepository;
 import com.doctorplus.service.validation.CpfValidator;
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,16 +33,19 @@ public class PacienteService {
     private final UsuarioRepository usuarioRepository;
     private final PacienteMapper pacienteMapper;
     private final CpfValidator cpfValidator;
+    private final MessageService messageService;
 
     @Autowired
     public PacienteService(PacienteRepository pacienteRepository,
                           UsuarioRepository usuarioRepository,
                           PacienteMapper pacienteMapper,
-                          CpfValidator cpfValidator) {
+                          CpfValidator cpfValidator,
+                          MessageService messageService) {
         this.pacienteRepository = pacienteRepository;
         this.usuarioRepository = usuarioRepository;
         this.pacienteMapper = pacienteMapper;
         this.cpfValidator = cpfValidator;
+        this.messageService = messageService;
     }
 
     public PacienteResponse criarPaciente(PacienteCreateRequest request, UUID usuarioId) {
@@ -54,7 +58,7 @@ public class PacienteService {
 
         // Buscar usuário responsável
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("auth.user.not.found")));
 
         // Criar paciente
         Paciente paciente = pacienteMapper.toEntity(request);
@@ -69,14 +73,14 @@ public class PacienteService {
     @Transactional(readOnly = true)
     public PacienteResponse buscarPorId(UUID id) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
         return pacienteMapper.toResponse(paciente);
     }
 
     @Transactional(readOnly = true)
     public PacienteResponse buscarPorCpf(String cpf) {
         Paciente paciente = pacienteRepository.findByCpf(cpf)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
         return pacienteMapper.toResponse(paciente);
     }
 
@@ -118,7 +122,7 @@ public class PacienteService {
 
     public PacienteResponse atualizarPaciente(UUID id, PacienteCreateRequest request) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
 
         // Validar CPF único se foi alterado
         if (!paciente.getCpf().equals(request.getCpf())) {
@@ -141,7 +145,7 @@ public class PacienteService {
 
     public void excluirPaciente(UUID id) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
 
         pacienteRepository.delete(paciente);
         logger.info("Paciente excluído: {}", id);
@@ -154,13 +158,13 @@ public class PacienteService {
 
     private void validarCpfUnico(String cpf) {
         if (pacienteRepository.existsByCpf(cpf)) {
-            throw new BusinessException("CPF já está cadastrado");
+            throw new BusinessException(messageService.getMessage("paciente.cpf.already.exists"));
         }
     }
 
     private void validarEmailUnico(String email) {
         if (pacienteRepository.existsByEmail(email)) {
-            throw new BusinessException("Email já está cadastrado");
+            throw new BusinessException(messageService.getMessage("paciente.email.already.exists"));
         }
     }
 }

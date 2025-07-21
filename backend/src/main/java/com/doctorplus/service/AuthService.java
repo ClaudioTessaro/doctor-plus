@@ -9,6 +9,7 @@ import com.doctorplus.exception.BusinessException;
 import com.doctorplus.mapper.UsuarioMapper;
 import com.doctorplus.repository.UsuarioRepository;
 import com.doctorplus.security.JwtTokenProvider;
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,18 +31,21 @@ public class AuthService {
     private final UsuarioService usuarioService;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final MessageService messageService;
 
     @Autowired
     public AuthService(AuthenticationManager authenticationManager,
                       JwtTokenProvider tokenProvider,
                       UsuarioService usuarioService,
                       UsuarioRepository usuarioRepository,
-                      UsuarioMapper usuarioMapper) {
+                      UsuarioMapper usuarioMapper,
+                      MessageService messageService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.usuarioService = usuarioService;
         this.usuarioRepository = usuarioRepository;
         this.usuarioMapper = usuarioMapper;
+        this.messageService = messageService;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -55,11 +59,11 @@ public class AuthService {
 
             // Buscar usuário
             Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
+                    .orElseThrow(() -> new BusinessException(messageService.getMessage("auth.user.not.found")));
 
             // Verificar se está ativo
             if (!usuario.getAtivo()) {
-                throw new BusinessException("Usuário inativo");
+                throw new BusinessException(messageService.getMessage("auth.login.inactive"));
             }
 
             // Gerar token
@@ -74,7 +78,7 @@ public class AuthService {
 
         } catch (AuthenticationException e) {
             logger.warn("Falha na autenticação para: {}", request.getEmail());
-            throw new BusinessException("Email ou senha inválidos");
+            throw new BusinessException(messageService.getMessage("auth.login.invalid"));
         }
     }
 
@@ -83,7 +87,7 @@ public class AuthService {
 
         // Validar se email já existe
         if (usuarioRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Email já está em uso");
+            throw new BusinessException(messageService.getMessage("auth.email.already.exists"));
         }
 
         // Criar usuário

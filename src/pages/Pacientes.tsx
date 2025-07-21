@@ -88,16 +88,8 @@ export function Pacientes() {
     } catch (error: any) {
       console.error('Error creating paciente:', error);
       
-      // Tratamento específico de erros do backend
-      let errorMessage = 'Não foi possível cadastrar o paciente.';
-      if (error.message.includes('CPF já está cadastrado')) {
-        errorMessage = 'Este CPF já está cadastrado no sistema.';
-      } else if (error.message.includes('Email já está cadastrado')) {
-        errorMessage = 'Este e-mail já está cadastrado no sistema.';
-      }
-      
       toast.error('❌ Erro no cadastro', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível cadastrar o paciente.',
       });
       throw error;
     }
@@ -117,15 +109,8 @@ export function Pacientes() {
     } catch (error: any) {
       console.error('Error updating paciente:', error);
       
-      let errorMessage = 'Não foi possível atualizar o paciente.';
-      if (error.message.includes('CPF já está cadastrado')) {
-        errorMessage = 'Este CPF já está cadastrado para outro paciente.';
-      } else if (error.message.includes('Email já está cadastrado')) {
-        errorMessage = 'Este e-mail já está cadastrado para outro paciente.';
-      }
-      
       toast.error('❌ Erro na atualização', {
-        description: errorMessage,
+        description: error.message || 'Não foi possível atualizar o paciente.',
       });
       throw error;
     }

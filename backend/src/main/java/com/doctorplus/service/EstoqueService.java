@@ -8,6 +8,7 @@ import com.doctorplus.exception.BusinessException;
 import com.doctorplus.exception.ResourceNotFoundException;
 import com.doctorplus.mapper.EstoqueMapper;
 import com.doctorplus.repository.EstoqueRepository;
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,13 @@ public class EstoqueService {
 
     private final EstoqueRepository estoqueRepository;
     private final EstoqueMapper estoqueMapper;
+    private final MessageService messageService;
 
     @Autowired
-    public EstoqueService(EstoqueRepository estoqueRepository, EstoqueMapper estoqueMapper) {
+    public EstoqueService(EstoqueRepository estoqueRepository, EstoqueMapper estoqueMapper, MessageService messageService) {
         this.estoqueRepository = estoqueRepository;
         this.estoqueMapper = estoqueMapper;
+        this.messageService = messageService;
     }
 
     public EstoqueResponse criarItem(EstoqueCreateRequest request) {
@@ -51,14 +54,14 @@ public class EstoqueService {
     @Transactional(readOnly = true)
     public EstoqueResponse buscarPorId(UUID id) {
         Estoque estoque = estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
         return estoqueMapper.toResponse(estoque);
     }
 
     @Transactional(readOnly = true)
     public EstoqueResponse buscarPorCodigo(String codigo) {
         Estoque estoque = estoqueRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
         return estoqueMapper.toResponse(estoque);
     }
 
@@ -117,7 +120,7 @@ public class EstoqueService {
 
     public EstoqueResponse atualizarItem(UUID id, EstoqueCreateRequest request) {
         Estoque estoque = estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
         // Validar código único se foi alterado
         if (!estoque.getCodigo().equals(request.getCodigo())) {
@@ -134,10 +137,10 @@ public class EstoqueService {
 
     public EstoqueResponse ajustarQuantidade(UUID id, Integer novaQuantidade) {
         Estoque estoque = estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
         if (novaQuantidade < 0) {
-            throw new BusinessException("Quantidade não pode ser negativa");
+            throw new BusinessException(messageService.getMessage("estoque.negative.quantity"));
         }
 
         Integer quantidadeAnterior = estoque.getQuantidade();
@@ -152,10 +155,10 @@ public class EstoqueService {
 
     public EstoqueResponse adicionarQuantidade(UUID id, Integer quantidade) {
         Estoque estoque = estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
         if (quantidade <= 0) {
-            throw new BusinessException("Quantidade a adicionar deve ser positiva");
+            throw new BusinessException(messageService.getMessage("estoque.positive.quantity.required"));
         }
 
         estoque.setQuantidade(estoque.getQuantidade() + quantidade);
@@ -167,14 +170,14 @@ public class EstoqueService {
 
     public EstoqueResponse removerQuantidade(UUID id, Integer quantidade) {
         Estoque estoque = estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
         if (quantidade <= 0) {
-            throw new BusinessException("Quantidade a remover deve ser positiva");
+            throw new BusinessException(messageService.getMessage("estoque.positive.quantity.required"));
         }
 
         if (estoque.getQuantidade() < quantidade) {
-            throw new BusinessException("Quantidade insuficiente em estoque");
+            throw new BusinessException(messageService.getMessage("estoque.insufficient.quantity"));
         }
 
         estoque.setQuantidade(estoque.getQuantidade() - quantidade);
@@ -216,7 +219,7 @@ public class EstoqueService {
 
     private void validarCodigoUnico(String codigo) {
         if (estoqueRepository.existsByCodigo(codigo)) {
-            throw new BusinessException("Código já está em uso");
+            throw new BusinessException(messageService.getMessage("estoque.code.already.exists"));
         }
     }
 }
