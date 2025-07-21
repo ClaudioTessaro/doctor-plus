@@ -202,6 +202,51 @@ export function Agenda() {
     }
   };
 
+  const handleRealizarConsulta = async (consulta: ConsultaResponse) => {
+    try {
+      await apiClient.realizarConsulta(consulta.id);
+      
+      setConsultas(prev => 
+        prev.map(c => c.id === consulta.id ? { ...c, status: 'REALIZADA' } : c)
+      );
+      
+      toast.success('✅ Consulta realizada!', {
+        description: `Consulta de ${consulta.paciente.nome} foi marcada como realizada.`,
+      });
+    } catch (error: any) {
+      console.error('Error marking consulta as realized:', error);
+      toast.error('❌ Erro ao marcar consulta como realizada', {
+        description: error.message || 'Não foi possível marcar a consulta como realizada.',
+      });
+    }
+  };
+
+  const handleAlterarStatus = async (consulta: ConsultaResponse, novoStatus: string) => {
+    try {
+      await apiClient.alterarStatusConsulta(consulta.id, novoStatus);
+      
+      setConsultas(prev => 
+        prev.map(c => c.id === consulta.id ? { ...c, status: novoStatus as any } : c)
+      );
+      
+      const statusTexto = {
+        'AGENDADA': 'agendada',
+        'CONFIRMADA': 'confirmada', 
+        'CANCELADA': 'cancelada',
+        'REALIZADA': 'realizada'
+      }[novoStatus] || novoStatus;
+      
+      toast.success('✅ Status alterado!', {
+        description: `Consulta de ${consulta.paciente.nome} foi ${statusTexto}.`,
+      });
+    } catch (error: any) {
+      console.error('Error changing status:', error);
+      toast.error('❌ Erro ao alterar status', {
+        description: error.message || 'Não foi possível alterar o status da consulta.',
+      });
+    }
+  };
+
   const navigateDate = (direction: 'prev' | 'next') => {
     if (view === 'day') {
       setCurrentDate(direction === 'next' ? addDays(currentDate, 1) : subDays(currentDate, 1));
@@ -544,6 +589,24 @@ export function Agenda() {
                             <CheckCircle className="h-4 w-4" />
                           </button>
                         )}
+                        {consulta.status === 'CONFIRMADA' && (
+                          <button
+                            onClick={() => handleRealizarConsulta(consulta)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Marcar como realizada"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {consulta.status === 'CONFIRMADA' && (
+                          <button
+                            onClick={() => handleRealizarConsulta(consulta)}
+                            className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                            title="Marcar como realizada"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => openModal(consulta)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -551,6 +614,26 @@ export function Agenda() {
                         >
                           <Edit className="h-4 w-4" />
                         </button>
+                        <div className="relative group">
+                          <button className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                            <span className="text-sm">●●●</span>
+                          </button>
+                          <StatusDropdown 
+                            consulta={consulta}
+                            onStatusChange={handleAlterarStatus}
+                            className="absolute right-0 top-10 hidden group-hover:block z-10"
+                          />
+                        </div>
+                        <div className="relative group">
+                          <button className="p-1 text-purple-600 hover:bg-purple-100 rounded transition-colors">
+                            <span className="text-xs">●●●</span>
+                          </button>
+                          <StatusDropdown 
+                            consulta={consulta}
+                            onStatusChange={handleAlterarStatus}
+                            className="absolute right-0 top-8 hidden group-hover:block"
+                          />
+                        </div>
                         <button
                           onClick={() => openDeleteDialog(consulta)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

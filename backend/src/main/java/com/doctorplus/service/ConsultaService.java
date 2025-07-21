@@ -175,6 +175,11 @@ public class ConsultaService {
         return consultaRepository.countConsultasNoPeriodo(inicio, fim);
     }
 
+    @Transactional(readOnly = true)
+    public Long contarTotalConsultas() {
+        return consultaRepository.count();
+    }
+
     private void validarDisponibilidade(UUID profissionalId, LocalDateTime dataHora, Integer duracao) {
         validarDisponibilidade(profissionalId, dataHora, duracao, null);
     }

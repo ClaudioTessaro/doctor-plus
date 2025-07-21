@@ -136,4 +136,12 @@ public class ConsultaController {
         consultaService.marcarComoRealizada(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/estatisticas/total")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
+    @Operation(summary = "Total de consultas", description = "Retorna o número total de consultas")
+    public ResponseEntity<Long> contarTotalConsultas() {
+        Long total = consultaService.contarTotalConsultas();
+        return ResponseEntity.ok(total);
+    }
 }

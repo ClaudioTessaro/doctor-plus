@@ -169,6 +169,18 @@ class ApiClient {
     });
   }
 
+  async realizarConsulta(id: string) {
+    return this.request(`/consultas/${id}/realizar`, {
+      method: 'PATCH',
+    });
+  }
+
+  async alterarStatusConsulta(id: string, status: string) {
+    return this.request(`/consultas/${id}/status?status=${status}`, {
+      method: 'PATCH',
+    });
+  }
+
   // Profissionais endpoints
   async getProfissionais() {
     return this.request<ProfissionalResponse[]>('/profissionais');

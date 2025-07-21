@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Phone, Mail, Eye, Loader2 } from 'lucide-react';
-import { apiClient, PacienteResponse, PageResponse } from '../lib/api';
+import { apiClient, PacienteResponse, PageResponse, ConsultaResponse, HistoricoResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { PacienteModal } from '../components/Pacientes/PacienteModal';
+import { PacienteDetailsModal } from '../components/Pacientes/PacienteDetailsModal';
 import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
 import { Pagination } from '../components/Common/Pagination';
 
@@ -37,6 +38,13 @@ export function Pacientes() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pacienteToDelete, setPacienteToDelete] = useState<PacienteResponse | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // Modal de visualização
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedPaciente, setSelectedPaciente] = useState<PacienteResponse | null>(null);
+  const [pacienteConsultas, setPacienteConsultas] = useState<ConsultaResponse[]>([]);
+  const [pacienteHistoricos, setPacienteHistoricos] = useState<HistoricoResponse[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     fetchPacientes();
@@ -177,6 +185,36 @@ export function Pacientes() {
     setCurrentPage(0);
   };
 
+  const openDetailsModal = async (paciente: PacienteResponse) => {
+    setSelectedPaciente(paciente);
+    setShowDetailsModal(true);
+    setLoadingDetails(true);
+    
+    try {
+      const [consultasData, historicosData] = await Promise.all([
+        apiClient.getConsultasByPaciente(paciente.id),
+        apiClient.getHistoricosByPaciente(paciente.id),
+      ]);
+      
+      setPacienteConsultas(consultasData);
+      setPacienteHistoricos(historicosData);
+    } catch (error) {
+      console.error('Error fetching patient details:', error);
+      toast.error('❌ Erro ao carregar detalhes', {
+        description: 'Não foi possível carregar os detalhes do paciente.',
+      });
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedPaciente(null);
+    setPacienteConsultas([]);
+    setPacienteHistoricos([]);
+  };
+
   const formatCPF = (cpf: string) => {
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
@@ -285,6 +323,7 @@ export function Pacientes() {
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => openDetailsModal(paciente)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                         title="Ver prontuário"
                       >
@@ -343,6 +382,22 @@ export function Pacientes() {
         onSave={editingPaciente ? handleUpdatePaciente : handleCreatePaciente}
         paciente={editingPaciente}
       />
+
+      {/* Modal de Detalhes */}
+      {selectedPaciente && (
+        <PacienteDetailsModal
+          isOpen={showDetailsModal}
+          onClose={closeDetailsModal}
+          paciente={selectedPaciente}
+          consultas={pacienteConsultas}
+          historicos={pacienteHistoricos}
+          onEdit={() => {
+            closeDetailsModal();
+            openModal(selectedPaciente);
+          }}
+          loading={loadingDetails}
+        />
+      )}
 
       {/* Dialog de Confirmação de Exclusão */}
       <ConfirmDialog
