@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient, UsuarioResponse, RegisterRequest } from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UsuarioResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for existing token
@@ -66,6 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.usuario);
       
       toast.success('Login realizado com sucesso!');
+      
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -80,6 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       
       toast.success('Logout realizado com sucesso!');
+      
+      // Redirect to login page
+      navigate('/login');
     } catch (error: any) {
       toast.error(error.message);
       throw error;

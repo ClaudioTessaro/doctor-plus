@@ -15,8 +15,8 @@ import { Profissionais } from './pages/Profissionais';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="App">
           <Routes>
             <Route path="/login" element={<LoginForm />} />
@@ -69,8 +69,8 @@ function App() {
             }}
           />
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

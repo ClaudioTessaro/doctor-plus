@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -29,6 +30,7 @@ export function LoginForm() {
     setLoading(true);
     try {
       await signIn(data.email, data.password);
+      // Navigation is handled in AuthContext
     } catch (error) {
       // Error handled by auth context
     } finally {

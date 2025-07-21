@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +25,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -46,6 +47,9 @@ export function RegisterForm() {
         especialidade: data.tipo === 'PROFISSIONAL' ? data.especialidade || 'Medicina Geral' : undefined,
         crm: data.tipo === 'PROFISSIONAL' ? data.crm || `CRM-${Math.random().toString(36).substr(2, 9).toUpperCase()}` : undefined,
       });
+      
+      // Redirect to login after successful registration
+      navigate('/login');
     } catch (error) {
       // Error handled by auth context
     } finally {
