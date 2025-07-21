@@ -434,7 +434,6 @@ export function Estoque() {
                 {searchTerm ? 'Nenhum item encontrado' : 'Nenhum item no estoque'}
               </p>
               {searchTerm || filterCategoria || filterStatus ? (
-              {searchTerm ? (
                 <p className="text-gray-400 text-sm">
                   Tente ajustar os filtros de busca
                 </p>
