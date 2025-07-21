@@ -4,11 +4,10 @@ import com.doctorplus.domain.enums.TipoUsuario;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class UsuarioResponse {
 
-    private UUID id;
+    private Long id;
     private String nome;
     private String email;
     private TipoUsuario tipo;
@@ -21,11 +20,11 @@ public class UsuarioResponse {
     public UsuarioResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -2,11 +2,10 @@ package com.doctorplus.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class EstoqueResponse {
 
-    private UUID id;
+    private Long id;
     private String nome;
     private String descricao;
     private String codigo;
@@ -25,11 +24,11 @@ public class EstoqueResponse {
     public EstoqueResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

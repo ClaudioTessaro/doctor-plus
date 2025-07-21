@@ -4,11 +4,10 @@ import com.doctorplus.domain.enums.StatusConsulta;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class ConsultaResponse {
 
-    private UUID id;
+    private Long id;
     private PacienteResponse paciente;
     private ProfissionalResponse profissional;
     private LocalDateTime dataHora;
@@ -23,11 +22,11 @@ public class ConsultaResponse {
     public ConsultaResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

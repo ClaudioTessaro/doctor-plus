@@ -1,11 +1,10 @@
 package com.doctorplus.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class HistoricoResponse {
 
-    private UUID id;
+    private Long id;
     private PacienteResponse paciente;
     private ProfissionalResponse profissional;
     private String descricao;
@@ -18,11 +17,11 @@ public class HistoricoResponse {
     public HistoricoResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

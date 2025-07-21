@@ -10,14 +10,13 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Repository
-public interface ConsultaRepository extends JpaRepository<Consulta, UUID> {
+public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
-    List<Consulta> findByPacienteIdOrderByDataHoraDesc(UUID pacienteId);
+    List<Consulta> findByPacienteIdOrderByDataHoraDesc(Long pacienteId);
 
-    List<Consulta> findByProfissionalIdOrderByDataHoraDesc(UUID profissionalId);
+    List<Consulta> findByProfissionalIdOrderByDataHoraDesc(Long profissionalId);
 
     List<Consulta> findByStatus(StatusConsulta status);
 
@@ -27,7 +26,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, UUID> {
 
     @Query("SELECT c FROM Consulta c WHERE c.profissional.id = :profissionalId " +
            "AND c.dataHora BETWEEN :inicio AND :fim ORDER BY c.dataHora")
-    List<Consulta> findByProfissionalIdAndDataHoraBetween(@Param("profissionalId") UUID profissionalId,
+    List<Consulta> findByProfissionalIdAndDataHoraBetween(@Param("profissionalId") Long profissionalId,
                                                           @Param("inicio") LocalDateTime inicio,
                                                           @Param("fim") LocalDateTime fim);
 
@@ -52,4 +51,20 @@ public interface ConsultaRepository extends JpaRepository<Consulta, UUID> {
 
     @Query("SELECT AVG(c.valor) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim AND c.valor IS NOT NULL")
     BigDecimal avgTicketMedio(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    // Métodos para controle de acesso
+    @Query("SELECT c FROM Consulta c WHERE " +
+           "c.dataHora BETWEEN :inicio AND :fim AND " +
+           "(:profissionalIds IS NULL OR c.profissional.id IN :profissionalIds) " +
+           "ORDER BY c.dataHora")
+    List<Consulta> findAccessibleByDataHoraBetween(@Param("inicio") LocalDateTime inicio,
+                                                  @Param("fim") LocalDateTime fim,
+                                                  @Param("profissionalIds") List<Long> profissionalIds);
+
+    @Query("SELECT c FROM Consulta c WHERE " +
+           "c.paciente.id = :pacienteId AND " +
+           "(:profissionalIds IS NULL OR c.profissional.id IN :profissionalIds) " +
+           "ORDER BY c.dataHora DESC")
+    List<Consulta> findAccessibleByPacienteId(@Param("pacienteId") Long pacienteId,
+                                             @Param("profissionalIds") List<Long> profissionalIds);
 }

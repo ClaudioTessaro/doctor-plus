@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/pacientes")
@@ -47,16 +46,18 @@ public class PacienteController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar paciente por ID", description = "Retorna os dados de um paciente específico")
-    public ResponseEntity<PacienteResponse> buscarPorId(@PathVariable UUID id) {
-        PacienteResponse response = pacienteService.buscarPorId(id);
+    public ResponseEntity<PacienteResponse> buscarPorId(@PathVariable Long id,
+                                                       @CurrentUser UserPrincipal currentUser) {
+        PacienteResponse response = pacienteService.buscarPorId(id, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/cpf/{cpf}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar paciente por CPF", description = "Retorna os dados de um paciente pelo CPF")
-    public ResponseEntity<PacienteResponse> buscarPorCpf(@PathVariable String cpf) {
-        PacienteResponse response = pacienteService.buscarPorCpf(cpf);
+    public ResponseEntity<PacienteResponse> buscarPorCpf(@PathVariable String cpf,
+                                                        @CurrentUser UserPrincipal currentUser) {
+        PacienteResponse response = pacienteService.buscarPorCpf(cpf, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -67,20 +68,21 @@ public class PacienteController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "nome") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @CurrentUser UserPrincipal currentUser) {
         
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         
-        PageResponse<PacienteResponse> response = pacienteService.listarTodos(pageable);
+        PageResponse<PacienteResponse> response = pacienteService.listarTodos(pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/simples")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar todos os pacientes simples", description = "Retorna lista simples de todos os pacientes para autocomplete")
-    public ResponseEntity<List<PacienteResponse>> listarTodosSimples() {
-        List<PacienteResponse> response = pacienteService.listarTodosSimples();
+    public ResponseEntity<List<PacienteResponse>> listarTodosSimples(@CurrentUser UserPrincipal currentUser) {
+        List<PacienteResponse> response = pacienteService.listarTodosSimples(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -90,10 +92,11 @@ public class PacienteController {
     public ResponseEntity<PageResponse<PacienteResponse>> buscarPorTermo(
             @RequestParam String termo,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser UserPrincipal currentUser) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
-        PageResponse<PacienteResponse> response = pacienteService.buscarPorTermo(termo, pageable);
+        PageResponse<PacienteResponse> response = pacienteService.buscarPorTermo(termo, pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -101,17 +104,19 @@ public class PacienteController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Atualizar paciente", description = "Atualiza os dados de um paciente")
     public ResponseEntity<PacienteResponse> atualizarPaciente(
-            @PathVariable UUID id,
-            @Valid @RequestBody PacienteCreateRequest request) {
-        PacienteResponse response = pacienteService.atualizarPaciente(id, request);
+            @PathVariable Long id,
+            @Valid @RequestBody PacienteCreateRequest request,
+            @CurrentUser UserPrincipal currentUser) {
+        PacienteResponse response = pacienteService.atualizarPaciente(id, request, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir paciente", description = "Remove um paciente do sistema")
-    public ResponseEntity<Void> excluirPaciente(@PathVariable UUID id) {
-        pacienteService.excluirPaciente(id);
+    public ResponseEntity<Void> excluirPaciente(@PathVariable Long id,
+                                               @CurrentUser UserPrincipal currentUser) {
+        pacienteService.excluirPaciente(id, currentUser.getEmail());
         return ResponseEntity.noContent().build();
     }
 

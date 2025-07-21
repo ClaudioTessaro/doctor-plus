@@ -1,6 +1,8 @@
 package com.doctorplus.controller;
 
 import com.doctorplus.dto.response.ProfissionalResponse;
+import com.doctorplus.security.CurrentUser;
+import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.ProfissionalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -11,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/profissionais")
@@ -29,32 +30,35 @@ public class ProfissionalController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar profissional por ID", description = "Retorna os dados de um profissional específico")
-    public ResponseEntity<ProfissionalResponse> buscarPorId(@PathVariable UUID id) {
-        ProfissionalResponse response = profissionalService.buscarPorId(id);
+    public ResponseEntity<ProfissionalResponse> buscarPorId(@PathVariable Long id,
+                                                           @CurrentUser UserPrincipal currentUser) {
+        ProfissionalResponse response = profissionalService.buscarPorId(id, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar todos os profissionais", description = "Retorna lista de todos os profissionais ativos")
-    public ResponseEntity<List<ProfissionalResponse>> listarTodos() {
-        List<ProfissionalResponse> response = profissionalService.listarTodos();
+    public ResponseEntity<List<ProfissionalResponse>> listarTodos(@CurrentUser UserPrincipal currentUser) {
+        List<ProfissionalResponse> response = profissionalService.listarTodos(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar profissionais", description = "Busca profissionais por nome, especialidade ou CRM")
-    public ResponseEntity<List<ProfissionalResponse>> buscarPorTermo(@RequestParam String termo) {
-        List<ProfissionalResponse> response = profissionalService.buscarPorTermo(termo);
+    public ResponseEntity<List<ProfissionalResponse>> buscarPorTermo(@RequestParam String termo,
+                                                                    @CurrentUser UserPrincipal currentUser) {
+        List<ProfissionalResponse> response = profissionalService.buscarPorTermo(termo, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/especialidade/{especialidade}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar por especialidade", description = "Retorna profissionais filtrados por especialidade")
-    public ResponseEntity<List<ProfissionalResponse>> listarPorEspecialidade(@PathVariable String especialidade) {
-        List<ProfissionalResponse> response = profissionalService.listarPorEspecialidade(especialidade);
+    public ResponseEntity<List<ProfissionalResponse>> listarPorEspecialidade(@PathVariable String especialidade,
+                                                                            @CurrentUser UserPrincipal currentUser) {
+        List<ProfissionalResponse> response = profissionalService.listarPorEspecialidade(especialidade, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

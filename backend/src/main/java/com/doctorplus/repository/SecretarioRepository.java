@@ -8,12 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface SecretarioRepository extends JpaRepository<Secretario, UUID> {
+public interface SecretarioRepository extends JpaRepository<Secretario, Long> {
 
-    Optional<Secretario> findByUsuarioId(UUID usuarioId);
+    Optional<Secretario> findByUsuarioId(Long usuarioId);
 
     @Query("SELECT s FROM Secretario s WHERE s.usuario.ativo = true")
     List<Secretario> findAllAtivos();
@@ -25,4 +24,22 @@ public interface SecretarioRepository extends JpaRepository<Secretario, UUID> {
 
     @Query("SELECT COUNT(s) FROM Secretario s WHERE s.usuario.ativo = true")
     Long countTotalSecretarios();
+
+    // Métodos para controle de acesso
+    @Query("SELECT s FROM Secretario s WHERE " +
+           "s.usuario.ativo = true AND " +
+           "(:secretarioIds IS NULL OR s.id IN :secretarioIds)")
+    List<Secretario> findAccessibleSecretarios(@Param("secretarioIds") List<Long> secretarioIds);
+
+    @Query("SELECT CASE WHEN COUNT(sp) > 0 THEN true ELSE false END " +
+           "FROM SecretarioProfissional sp " +
+           "JOIN sp.profissional.consultas c " +
+           "WHERE sp.secretario.usuario.id = :usuarioId AND c.paciente.id = :pacienteId")
+    boolean canAccessPaciente(@Param("usuarioId") Long usuarioId, @Param("pacienteId") Long pacienteId);
+
+    @Query("SELECT DISTINCT c.paciente.id " +
+           "FROM SecretarioProfissional sp " +
+           "JOIN sp.profissional.consultas c " +
+           "WHERE sp.secretario.usuario.id = :usuarioId")
+    List<Long> getAccessiblePacienteIds(@Param("usuarioId") Long usuarioId);
 }

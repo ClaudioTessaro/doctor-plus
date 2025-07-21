@@ -6,18 +6,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface SecretarioProfissionalRepository extends JpaRepository<SecretarioProfissional, UUID> {
+public interface SecretarioProfissionalRepository extends JpaRepository<SecretarioProfissional, Long> {
 
-    List<SecretarioProfissional> findBySecretarioId(UUID secretarioId);
+    List<SecretarioProfissional> findBySecretarioId(Long secretarioId);
 
-    List<SecretarioProfissional> findByProfissionalId(UUID profissionalId);
+    List<SecretarioProfissional> findByProfissionalId(Long profissionalId);
 
-    Optional<SecretarioProfissional> findBySecretarioIdAndProfissionalId(UUID secretarioId, UUID profissionalId);
+    Optional<SecretarioProfissional> findBySecretarioIdAndProfissionalId(Long secretarioId, Long profissionalId);
 
-    boolean existsBySecretarioIdAndProfissionalId(UUID secretarioId, UUID profissionalId);
+    boolean existsBySecretarioIdAndProfissionalId(Long secretarioId, Long profissionalId);
 
-    void deleteBySecretarioIdAndProfissionalId(UUID secretarioId, UUID profissionalId);
+    void deleteBySecretarioIdAndProfissionalId(Long secretarioId, Long profissionalId);
 }

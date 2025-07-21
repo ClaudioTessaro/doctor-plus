@@ -9,16 +9,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
-public interface HistoricoRepository extends JpaRepository<Historico, UUID> {
+public interface HistoricoRepository extends JpaRepository<Historico, Long> {
 
     List<Historico> findAllByOrderByDataConsultaDesc();
 
-    List<Historico> findByPacienteIdOrderByDataConsultaDesc(UUID pacienteId);
+    List<Historico> findByPacienteIdOrderByDataConsultaDesc(Long pacienteId);
 
-    List<Historico> findByProfissionalIdOrderByDataConsultaDesc(UUID profissionalId);
+    List<Historico> findByProfissionalIdOrderByDataConsultaDesc(Long profissionalId);
 
     @Query("SELECT h FROM Historico h WHERE " +
            "LOWER(h.descricao) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
@@ -28,4 +27,30 @@ public interface HistoricoRepository extends JpaRepository<Historico, UUID> {
 
     @Query("SELECT COUNT(h) FROM Historico h")
     Long countTotalHistoricos();
+
+    // Métodos para controle de acesso
+    @Query("SELECT h FROM Historico h WHERE " +
+           "(:profissionalIds IS NULL OR h.profissional.id IN :profissionalIds)")
+    Page<Historico> findAccessibleHistoricos(@Param("profissionalIds") List<Long> profissionalIds, Pageable pageable);
+
+    @Query("SELECT h FROM Historico h WHERE " +
+           "(:profissionalIds IS NULL OR h.profissional.id IN :profissionalIds) " +
+           "ORDER BY h.dataConsulta DESC")
+    List<Historico> findAccessibleHistoricosSimples(@Param("profissionalIds") List<Long> profissionalIds);
+
+    @Query("SELECT h FROM Historico h WHERE " +
+           "h.paciente.id = :pacienteId AND " +
+           "(:profissionalIds IS NULL OR h.profissional.id IN :profissionalIds) " +
+           "ORDER BY h.dataConsulta DESC")
+    List<Historico> findAccessibleByPacienteId(@Param("pacienteId") Long pacienteId,
+                                              @Param("profissionalIds") List<Long> profissionalIds);
+
+    @Query("SELECT h FROM Historico h WHERE " +
+           "(:profissionalIds IS NULL OR h.profissional.id IN :profissionalIds) AND " +
+           "(LOWER(h.descricao) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
+           "LOWER(h.diagnostico) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
+           "LOWER(h.paciente.nome) LIKE LOWER(CONCAT('%', :termo, '%')))")
+    Page<Historico> buscarPorTermoAccessible(@Param("termo") String termo,
+                                            @Param("profissionalIds") List<Long> profissionalIds,
+                                            Pageable pageable);
 }

@@ -8,12 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface ProfissionalRepository extends JpaRepository<Profissional, UUID> {
+public interface ProfissionalRepository extends JpaRepository<Profissional, Long> {
 
-    Optional<Profissional> findByUsuarioId(UUID usuarioId);
+    Optional<Profissional> findByUsuarioId(Long usuarioId);
 
     Optional<Profissional> findByCrm(String crm);
 
@@ -35,4 +34,17 @@ public interface ProfissionalRepository extends JpaRepository<Profissional, UUID
 
     @Query("SELECT COUNT(p) FROM Profissional p WHERE p.usuario.ativo = true")
     Long countTotalProfissionais();
+
+    // Métodos para controle de acesso
+    @Query("SELECT p FROM Profissional p WHERE " +
+           "p.usuario.ativo = true AND " +
+           "(:profissionalIds IS NULL OR p.id IN :profissionalIds)")
+    List<Profissional> findAccessibleProfissionais(@Param("profissionalIds") List<Long> profissionalIds);
+
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
+           "FROM Consulta c WHERE c.profissional.usuario.id = :usuarioId AND c.paciente.id = :pacienteId")
+    boolean canAccessPaciente(@Param("usuarioId") Long usuarioId, @Param("pacienteId") Long pacienteId);
+
+    @Query("SELECT DISTINCT c.paciente.id FROM Consulta c WHERE c.profissional.usuario.id = :usuarioId")
+    List<Long> getAccessiblePacienteIds(@Param("usuarioId") Long usuarioId);
 }

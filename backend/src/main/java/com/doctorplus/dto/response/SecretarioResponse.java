@@ -2,11 +2,10 @@ package com.doctorplus.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public class SecretarioResponse {
 
-    private UUID id;
+    private Long id;
     private UsuarioResponse usuario;
     private List<SecretarioProfissionalResponse> profissionais;
     private LocalDateTime createdAt;
@@ -15,11 +14,11 @@ public class SecretarioResponse {
     public SecretarioResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

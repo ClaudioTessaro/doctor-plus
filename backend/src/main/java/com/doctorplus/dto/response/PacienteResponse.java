@@ -2,11 +2,10 @@ package com.doctorplus.dto.response;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class PacienteResponse {
 
-    private UUID id;
+    private Long id;
     private String nome;
     private String cpf;
     private String email;
@@ -21,11 +20,11 @@ public class PacienteResponse {
     public PacienteResponse() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

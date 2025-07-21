@@ -7,15 +7,14 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class ConsultaCreateRequest {
 
     @NotNull(message = "ID do paciente é obrigatório")
-    private UUID pacienteId;
+    private Long pacienteId;
 
     @NotNull(message = "ID do profissional é obrigatório")
-    private UUID profissionalId;
+    private Long profissionalId;
 
     @NotNull(message = "Data e hora são obrigatórias")
     @Future(message = "Data e hora devem ser no futuro")
@@ -35,19 +34,19 @@ public class ConsultaCreateRequest {
     public ConsultaCreateRequest() {}
 
     // Getters and Setters
-    public UUID getPacienteId() {
+    public Long getPacienteId() {
         return pacienteId;
     }
 
-    public void setPacienteId(UUID pacienteId) {
+    public void setPacienteId(Long pacienteId) {
         this.pacienteId = pacienteId;
     }
 
-    public UUID getProfissionalId() {
+    public Long getProfissionalId() {
         return profissionalId;
     }
 
-    public void setProfissionalId(UUID profissionalId) {
+    public void setProfissionalId(Long profissionalId) {
         this.profissionalId = profissionalId;
     }
 

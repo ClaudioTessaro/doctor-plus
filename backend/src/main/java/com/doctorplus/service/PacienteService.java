@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -34,21 +33,24 @@ public class PacienteService {
     private final PacienteMapper pacienteMapper;
     private final CpfValidator cpfValidator;
     private final MessageService messageService;
+    private final SecurityService securityService;
 
     @Autowired
     public PacienteService(PacienteRepository pacienteRepository,
                           UsuarioRepository usuarioRepository,
                           PacienteMapper pacienteMapper,
                           CpfValidator cpfValidator,
-                          MessageService messageService) {
+                          MessageService messageService,
+                          SecurityService securityService) {
         this.pacienteRepository = pacienteRepository;
         this.usuarioRepository = usuarioRepository;
         this.pacienteMapper = pacienteMapper;
         this.cpfValidator = cpfValidator;
         this.messageService = messageService;
+        this.securityService = securityService;
     }
 
-    public PacienteResponse criarPaciente(PacienteCreateRequest request, UUID usuarioId) {
+    public PacienteResponse criarPaciente(PacienteCreateRequest request, Long usuarioId) {
         logger.info("Criando novo paciente: {}", request.getNome());
 
         // Validações
@@ -71,22 +73,43 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public PacienteResponse buscarPorId(UUID id) {
+    public PacienteResponse buscarPorId(Long id, String userEmail) {
+        // Verificar acesso
+        if (!securityService.canAccessPaciente(userEmail, id)) {
+            throw new BusinessException("Acesso negado ao paciente");
+        }
+
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
         return pacienteMapper.toResponse(paciente);
     }
 
     @Transactional(readOnly = true)
-    public PacienteResponse buscarPorCpf(String cpf) {
+    public PacienteResponse buscarPorCpf(String cpf, String userEmail) {
         Paciente paciente = pacienteRepository.findByCpf(cpf)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
+        
+        // Verificar acesso
+        if (!securityService.canAccessPaciente(userEmail, paciente.getId())) {
+            throw new BusinessException("Acesso negado ao paciente");
+        }
+
         return pacienteMapper.toResponse(paciente);
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PacienteResponse> listarTodos(Pageable pageable) {
-        Page<Paciente> pacientesPage = pacienteRepository.findAll(pageable);
+    public PageResponse<PacienteResponse> listarTodos(Pageable pageable, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
+        
+        Page<Paciente> pacientesPage;
+        if (accessibleIds.isEmpty()) {
+            // Admin - pode ver todos
+            pacientesPage = pacienteRepository.findAll(pageable);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            pacientesPage = pacienteRepository.findAccessiblePacientes(accessibleIds, pageable);
+        }
+        
         List<PacienteResponse> pacientes = pacienteMapper.toResponseList(pacientesPage.getContent());
         return new PageResponse<>(
             pacientes,
@@ -97,14 +120,24 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> listarPorUsuario(UUID usuarioId) {
+    public List<PacienteResponse> listarPorUsuario(Long usuarioId) {
         List<Paciente> pacientes = pacienteRepository.findByUsuarioId(usuarioId);
         return pacienteMapper.toResponseList(pacientes);
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PacienteResponse> buscarPorTermo(String termo, Pageable pageable) {
-        Page<Paciente> pacientesPage = pacienteRepository.buscarPorTermo(termo, pageable);
+    public PageResponse<PacienteResponse> buscarPorTermo(String termo, Pageable pageable, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
+        
+        Page<Paciente> pacientesPage;
+        if (accessibleIds.isEmpty()) {
+            // Admin - pode buscar todos
+            pacientesPage = pacienteRepository.buscarPorTermo(termo, pageable);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            pacientesPage = pacienteRepository.buscarPorTermoAccessible(termo, accessibleIds, pageable);
+        }
+        
         List<PacienteResponse> pacientes = pacienteMapper.toResponseList(pacientesPage.getContent());
         return new PageResponse<>(
             pacientes,
@@ -115,12 +148,27 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> listarTodosSimples() {
-        List<Paciente> pacientes = pacienteRepository.findAll();
+    public List<PacienteResponse> listarTodosSimples(String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
+        
+        List<Paciente> pacientes;
+        if (accessibleIds.isEmpty()) {
+            // Admin - pode ver todos
+            pacientes = pacienteRepository.findAll();
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            pacientes = pacienteRepository.findAccessiblePacientesSimples(accessibleIds);
+        }
+        
         return pacienteMapper.toResponseList(pacientes);
     }
 
-    public PacienteResponse atualizarPaciente(UUID id, PacienteCreateRequest request) {
+    public PacienteResponse atualizarPaciente(Long id, PacienteCreateRequest request, String userEmail) {
+        // Verificar acesso
+        if (!securityService.canAccessPaciente(userEmail, id)) {
+            throw new BusinessException("Acesso negado ao paciente");
+        }
+
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
 
@@ -143,7 +191,12 @@ public class PacienteService {
         return pacienteMapper.toResponse(paciente);
     }
 
-    public void excluirPaciente(UUID id) {
+    public void excluirPaciente(Long id, String userEmail) {
+        // Verificar acesso
+        if (!securityService.canAccessPaciente(userEmail, id)) {
+            throw new BusinessException("Acesso negado ao paciente");
+        }
+
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("paciente.not.found")));
 
