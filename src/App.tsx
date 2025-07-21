@@ -49,7 +49,7 @@ function App() {
           <Toaster
             position="top-right"
             toastOptions={{
-              duration: 8000,
+              duration: 6000,
               className: 'toast-enhanced',
               style: {
                 background: '#ffffff',
@@ -58,14 +58,14 @@ function App() {
                 borderRadius: '16px',
                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                 padding: '20px 24px',
-                fontSize: '15px',
+                fontSize: '14px',
                 fontWeight: '500',
-                maxWidth: '500px',
-                minWidth: '350px',
+                maxWidth: '450px',
+                minWidth: '320px',
                 lineHeight: '1.5',
               },
               success: {
-                duration: 7000,
+                duration: 5000,
                 style: {
                   background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
                   color: '#14532d',
@@ -79,7 +79,7 @@ function App() {
                 },
               },
               error: {
-                duration: 12000,
+                duration: 8000,
                 style: {
                   background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
                   color: '#7f1d1d',
@@ -93,7 +93,7 @@ function App() {
                 },
               },
               loading: {
-                duration: 0,
+                duration: Infinity,
                 style: {
                   background: 'linear-gradient(135deg, #fefbf3 0%, #fef3c7 100%)',
                   color: '#78350f',

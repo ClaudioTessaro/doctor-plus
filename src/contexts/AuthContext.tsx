@@ -76,9 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      toast.loading('🔐 Verificando credenciais...', {
-        id: 'signin-loading'
-      });
+      const loadingToast = toast.loading('🔐 Verificando credenciais...');
       
       const response = await apiClient.login(email, password);
       
@@ -87,22 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('userData', JSON.stringify(response.usuario));
       setUser(response.usuario);
       
-      toast.dismiss('signin-loading');
+      toast.dismiss(loadingToast);
       toast.success(`🎉 Bem-vindo de volta, ${response.usuario.nome}!`, {
         description: `Login realizado com sucesso. Redirecionando para o dashboard...`,
-        duration: 4000,
       });
       
       // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.dismiss('signin-loading');
+      toast.dismiss(); // Remove qualquer toast ativo
       
       console.error('Login error details:', error);
       
       toast.error('🔒 Falha na Autenticação', {
-        description: error.message || 'Verifique seu email e senha.',
+        description: error.message || 'Verifique seu email e senha.'
       });
       throw error;
     }

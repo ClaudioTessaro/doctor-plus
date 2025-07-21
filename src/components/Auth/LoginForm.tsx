@@ -30,16 +30,12 @@ export function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      toast.loading('🔐 Autenticando...', {
-        description: 'Verificando suas credenciais.',
-      });
       await signIn(data.email, data.password);
       // Navigation is handled in AuthContext
     } catch (error) {
       // Error handled by auth context
     } finally {
       setLoading(false);
-      toast.dismiss();
     }
   };
 
