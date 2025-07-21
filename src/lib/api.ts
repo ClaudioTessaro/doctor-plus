@@ -277,6 +277,57 @@ class ApiClient {
     return this.request<HistoricoResponse[]>(`/historicos/buscar?termo=${encodeURIComponent(termo)}`);
   }
 
+  // Secretários endpoints
+  async getSecretarios() {
+    return this.request<SecretarioResponse[]>('/secretarios');
+  }
+
+  async getSecretario(id: string) {
+    return this.request<SecretarioResponse>(`/secretarios/${id}`);
+  }
+
+  async createSecretario(data: SecretarioCreateRequest) {
+    return this.request<SecretarioResponse>('/secretarios', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateSecretario(id: string, data: SecretarioCreateRequest) {
+    return this.request<SecretarioResponse>(`/secretarios/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async vincularProfissional(secretarioId: string, profissionalId: string) {
+    return this.request<SecretarioResponse>(`/secretarios/${secretarioId}/vincular/${profissionalId}`, {
+      method: 'POST',
+    });
+  }
+
+  async desvincularProfissional(secretarioId: string, profissionalId: string) {
+    return this.request(`/secretarios/${secretarioId}/desvincular/${profissionalId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async ativarSecretario(id: string) {
+    return this.request(`/secretarios/${id}/ativar`, {
+      method: 'PATCH',
+    });
+  }
+
+  async desativarSecretario(id: string) {
+    return this.request(`/secretarios/${id}/desativar`, {
+      method: 'PATCH',
+    });
+  }
+
+  async searchSecretarios(termo: string) {
+    return this.request<SecretarioResponse[]>(`/secretarios/buscar?termo=${encodeURIComponent(termo)}`);
+  }
+
   // Profissionais endpoints
   async getProfissionais() {
     return this.request<ProfissionalResponse[]>('/profissionais');
@@ -411,6 +462,13 @@ export interface ProfissionalResponse {
   crm: string;
   usuario: UsuarioResponse;
   createdAt: string;
+}
+
+export interface SecretarioCreateRequest {
+  nome: string;
+  email: string;
+  senha?: string;
+  dataNascimento: string;
 }
 
 export interface SecretarioResponse {
