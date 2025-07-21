@@ -14,6 +14,9 @@ public interface ProfissionalRepository extends JpaRepository<Profissional, Long
 
     Optional<Profissional> findByUsuarioId(Long usuarioId);
 
+    @Query("SELECT p FROM Profissional p WHERE p.usuario.email = :email")
+    Optional<Profissional> findByUsuarioEmail(@Param("email") String email);
+
     Optional<Profissional> findByCrm(String crm);
 
     boolean existsByCrm(String crm);

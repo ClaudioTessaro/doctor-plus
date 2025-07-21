@@ -7,10 +7,11 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ProfissionalMapper.class})
 public interface EstoqueMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "profissional", ignore = true)
     @Mapping(target = "ativo", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -24,6 +25,7 @@ public interface EstoqueMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "profissional", ignore = true)
     @Mapping(target = "ativo", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

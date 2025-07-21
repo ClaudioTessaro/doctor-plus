@@ -17,6 +17,7 @@ public class EstoqueResponse {
     private Boolean ativo;
     private Boolean estoqueBaixo;
     private Boolean esgotado;
+    private ProfissionalResponse profissional;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -118,6 +119,14 @@ public class EstoqueResponse {
 
     public void setEsgotado(Boolean esgotado) {
         this.esgotado = esgotado;
+    }
+
+    public ProfissionalResponse getProfissional() {
+        return profissional;
+    }
+
+    public void setProfissional(ProfissionalResponse profissional) {
+        this.profissional = profissional;
     }
 
     public LocalDateTime getCreatedAt() {

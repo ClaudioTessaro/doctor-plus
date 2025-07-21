@@ -98,12 +98,10 @@ public class DashboardService {
             consultaRepository.countAccessibleConsultasNoPeriodo(inicioMes, fimMes, accessibleProfissionalIds);
 
         // Estoque
-        Long itensEstoque = securityService.isAdmin(userEmail) ? 
-            estoqueRepository.countByAtivoTrue() : 0L;
-        Long itensEstoqueBaixo = securityService.isAdmin(userEmail) ? 
-            estoqueRepository.countItensComEstoqueBaixo() : 0L;
-        Long itensEsgotados = securityService.isAdmin(userEmail) ? 
-            estoqueRepository.countItensEsgotados() : 0L;
+        Long profissionalIdEstoque = getProfissionalIdForEstoque(userEmail);
+        Long itensEstoque = estoqueRepository.countByAtivoTrue(profissionalIdEstoque);
+        Long itensEstoqueBaixo = estoqueRepository.countItensComEstoqueBaixo(profissionalIdEstoque);
+        Long itensEsgotados = estoqueRepository.countItensEsgotados(profissionalIdEstoque);
 
         // Pacientes novos
         Long pacientesNovosHoje = accessiblePacienteIds == null ?
@@ -277,6 +275,16 @@ public class DashboardService {
             return atual > 0 ? 100.0 : 0.0;
         }
         return ((atual.doubleValue() - anterior.doubleValue()) / anterior.doubleValue()) * 100;
+    }
+
+    private Long getProfissionalIdForEstoque(String userEmail) {
+        if (securityService.isAdmin(userEmail)) {
+            return null; // Admin vê todos os estoques
+        }
+        
+        return profissionalRepository.findByUsuarioEmail(userEmail)
+            .map(p -> p.getId())
+            .orElse(null);
     }
 
     private Double calcularCrescimentoFinanceiro(BigDecimal atual, BigDecimal anterior) {

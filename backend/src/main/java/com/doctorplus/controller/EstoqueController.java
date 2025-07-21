@@ -32,15 +32,16 @@ public class EstoqueController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Criar item de estoque", description = "Cadastra um novo item no estoque")
-    public ResponseEntity<EstoqueResponse> criarItem(@Valid @RequestBody EstoqueCreateRequest request) {
-        EstoqueResponse response = estoqueService.criarItem(request);
+    public ResponseEntity<EstoqueResponse> criarItem(@Valid @RequestBody EstoqueCreateRequest request,
+                                                    @CurrentUser UserPrincipal currentUser) {
+        EstoqueResponse response = estoqueService.criarItem(request, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Buscar item por ID", description = "Retorna os dados de um item específico")
     public ResponseEntity<EstoqueResponse> buscarPorId(@PathVariable Long id) {
         EstoqueResponse response = estoqueService.buscarPorId(id);
@@ -48,7 +49,7 @@ public class EstoqueController {
     }
 
     @GetMapping("/codigo/{codigo}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Buscar item por código", description = "Retorna os dados de um item pelo código")
     public ResponseEntity<EstoqueResponse> buscarPorCodigo(@PathVariable String codigo) {
         EstoqueResponse response = estoqueService.buscarPorCodigo(codigo);
@@ -56,7 +57,7 @@ public class EstoqueController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Listar itens paginados", description = "Retorna lista paginada de itens do estoque")
     public ResponseEntity<PageResponse<EstoqueResponse>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
@@ -73,7 +74,7 @@ public class EstoqueController {
     }
 
     @GetMapping("/simples")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Listar todos os itens simples", description = "Retorna lista simples de todos os itens para seleção")
     public ResponseEntity<List<EstoqueResponse>> listarTodosSimples(@CurrentUser UserPrincipal currentUser) {
         List<EstoqueResponse> response = estoqueService.listarTodosSimples(currentUser.getEmail());
@@ -81,31 +82,32 @@ public class EstoqueController {
     }
 
     @GetMapping("/categoria/{categoria}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Listar itens por categoria", description = "Retorna itens filtrados por categoria")
-    public ResponseEntity<List<EstoqueResponse>> listarPorCategoria(@PathVariable String categoria) {
-        List<EstoqueResponse> response = estoqueService.listarPorCategoria(categoria);
+    public ResponseEntity<List<EstoqueResponse>> listarPorCategoria(@PathVariable String categoria,
+                                                                   @CurrentUser UserPrincipal currentUser) {
+        List<EstoqueResponse> response = estoqueService.listarPorCategoria(categoria, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/alertas/baixo")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Itens com estoque baixo", description = "Retorna itens com quantidade abaixo do limite mínimo")
-    public ResponseEntity<List<EstoqueResponse>> listarItensComEstoqueBaixo() {
-        List<EstoqueResponse> response = estoqueService.listarItensComEstoqueBaixo();
+    public ResponseEntity<List<EstoqueResponse>> listarItensComEstoqueBaixo(@CurrentUser UserPrincipal currentUser) {
+        List<EstoqueResponse> response = estoqueService.listarItensComEstoqueBaixo(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/alertas/esgotados")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Itens esgotados", description = "Retorna itens com quantidade zero")
-    public ResponseEntity<List<EstoqueResponse>> listarItensEsgotados() {
-        List<EstoqueResponse> response = estoqueService.listarItensEsgotados();
+    public ResponseEntity<List<EstoqueResponse>> listarItensEsgotados(@CurrentUser UserPrincipal currentUser) {
+        List<EstoqueResponse> response = estoqueService.listarItensEsgotados(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Buscar itens paginados", description = "Busca itens por nome, código ou categoria com paginação")
     public ResponseEntity<PageResponse<EstoqueResponse>> buscarPorTermo(
             @RequestParam String termo,
@@ -119,7 +121,7 @@ public class EstoqueController {
     }
 
     @GetMapping("/categorias")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Listar categorias", description = "Retorna todas as categorias disponíveis")
     public ResponseEntity<List<String>> listarCategorias(@CurrentUser UserPrincipal currentUser) {
         List<String> response = estoqueService.listarCategorias(currentUser.getEmail());
@@ -127,74 +129,80 @@ public class EstoqueController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Atualizar item", description = "Atualiza os dados de um item do estoque")
     public ResponseEntity<EstoqueResponse> atualizarItem(
             @PathVariable Long id,
-            @Valid @RequestBody EstoqueCreateRequest request) {
-        EstoqueResponse response = estoqueService.atualizarItem(id, request);
+            @Valid @RequestBody EstoqueCreateRequest request,
+            @CurrentUser UserPrincipal currentUser) {
+        EstoqueResponse response = estoqueService.atualizarItem(id, request, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/quantidade")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Ajustar quantidade", description = "Define uma nova quantidade para o item")
     public ResponseEntity<EstoqueResponse> ajustarQuantidade(
             @PathVariable Long id,
-            @RequestParam Integer quantidade) {
-        EstoqueResponse response = estoqueService.ajustarQuantidade(id, quantidade);
+            @RequestParam Integer quantidade,
+            @CurrentUser UserPrincipal currentUser) {
+        EstoqueResponse response = estoqueService.ajustarQuantidade(id, quantidade, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/adicionar")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Adicionar quantidade", description = "Adiciona quantidade ao estoque do item")
     public ResponseEntity<EstoqueResponse> adicionarQuantidade(
             @PathVariable Long id,
-            @RequestParam Integer quantidade) {
-        EstoqueResponse response = estoqueService.adicionarQuantidade(id, quantidade);
+            @RequestParam Integer quantidade,
+            @CurrentUser UserPrincipal currentUser) {
+        EstoqueResponse response = estoqueService.adicionarQuantidade(id, quantidade, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/remover")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Remover quantidade", description = "Remove quantidade do estoque do item")
     public ResponseEntity<EstoqueResponse> removerQuantidade(
             @PathVariable Long id,
-            @RequestParam Integer quantidade) {
-        EstoqueResponse response = estoqueService.removerQuantidade(id, quantidade);
+            @RequestParam Integer quantidade,
+            @CurrentUser UserPrincipal currentUser) {
+        EstoqueResponse response = estoqueService.removerQuantidade(id, quantidade, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/desativar")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Desativar item", description = "Desativa um item do estoque")
-    public ResponseEntity<Void> desativarItem(@PathVariable Long id) {
-        estoqueService.desativarItem(id);
+    public ResponseEntity<Void> desativarItem(@PathVariable Long id,
+                                             @CurrentUser UserPrincipal currentUser) {
+        estoqueService.desativarItem(id, currentUser.getEmail());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/ativar")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Ativar item", description = "Ativa um item do estoque")
-    public ResponseEntity<Void> ativarItem(@PathVariable Long id) {
-        estoqueService.ativarItem(id);
+    public ResponseEntity<Void> ativarItem(@PathVariable Long id,
+                                          @CurrentUser UserPrincipal currentUser) {
+        estoqueService.ativarItem(id, currentUser.getEmail());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/estatisticas/total")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Total de itens", description = "Retorna o número total de itens no estoque")
-    public ResponseEntity<Long> contarTotalItens() {
-        Long total = estoqueService.contarTotalItens();
+    public ResponseEntity<Long> contarTotalItens(@CurrentUser UserPrincipal currentUser) {
+        Long total = estoqueService.contarTotalItens(currentUser.getEmail());
         return ResponseEntity.ok(total);
     }
 
     @GetMapping("/estatisticas/alertas")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Total de alertas", description = "Retorna o número de itens com estoque baixo")
-    public ResponseEntity<Long> contarItensComAlerta() {
-        Long total = estoqueService.contarItensComEstoqueBaixo();
+    public ResponseEntity<Long> contarItensComAlerta(@CurrentUser UserPrincipal currentUser) {
+        Long total = estoqueService.contarItensComEstoqueBaixo(currentUser.getEmail());
         return ResponseEntity.ok(total);
     }
 }
