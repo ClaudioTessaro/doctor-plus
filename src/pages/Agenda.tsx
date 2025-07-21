@@ -6,6 +6,7 @@ import { apiClient, ConsultaResponse, PacienteResponse, ProfissionalResponse } f
 import { AgendamentoModal } from '../components/Agenda/AgendamentoModal';
 import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
 import { StatusBadge } from '../components/Agenda/StatusBadge';
+import { StatusDropdown } from '../components/Agenda/StatusDropdown';
 import toast from 'react-hot-toast';
 
 interface AgendamentoFormData {
@@ -45,7 +46,7 @@ export function Agenda() {
       // Buscar dados em paralelo
       const [consultasData, pacientesData, profissionaisData] = await Promise.all([
         fetchConsultas(),
-        apiClient.getPacientes(),
+        apiClient.getPacientesSimples(),
         apiClient.getProfissionais(),
       ]);
 
