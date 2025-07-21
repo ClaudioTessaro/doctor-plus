@@ -15,7 +15,9 @@ export function EstoqueAlerts() {
   const fetchItensAlerta = async () => {
     try {
       const data = await apiClient.getEstoqueBaixo();
-      setItensAlerta(data.slice(0, 5)); // Mostrar apenas os 5 primeiros
+      if (data && Array.isArray(data)) {
+        setItensAlerta(data.slice(0, 5)); // Mostrar apenas os 5 primeiros
+      }
     } catch (error) {
       console.error('Error fetching estoque alerts:', error);
     } finally {

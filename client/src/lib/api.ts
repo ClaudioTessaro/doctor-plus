@@ -1,4 +1,4 @@
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://cd0eeedc-81ff-4f28-9b78-afc2b07fb5ba-00-3gv3oat9jl1o2.kirk.replit.dev/api';
 
 // Configuração do cliente HTTP
 class ApiClient {

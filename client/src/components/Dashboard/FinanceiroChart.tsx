@@ -25,7 +25,9 @@ export function FinanceiroChart() {
   const fetchFinanceiroStats = async () => {
     try {
       const data = await apiClient.getFinanceiroStats();
-      setStats(data);
+      if (data) {
+        setStats(data);
+      }
     } catch (error) {
       console.error('Error fetching financeiro stats:', error);
     } finally {

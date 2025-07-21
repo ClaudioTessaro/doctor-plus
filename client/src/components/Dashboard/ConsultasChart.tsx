@@ -29,7 +29,9 @@ export function ConsultasChart() {
   const fetchConsultaStats = async () => {
     try {
       const data = await apiClient.getConsultaStats();
-      setStats(data);
+      if (data) {
+        setStats(data);
+      }
     } catch (error) {
       console.error('Error fetching consulta stats:', error);
     } finally {
