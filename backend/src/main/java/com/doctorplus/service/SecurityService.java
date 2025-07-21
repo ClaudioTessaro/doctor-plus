@@ -262,4 +262,17 @@ public class SecurityService {
             return false;
         }
     }
+
+    /**
+     * Verifica se o usuário é profissional
+     */
+    public boolean isProfissional(String email) {
+        try {
+            Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
+            return usuario.isPresent() && usuario.get().getTipo() == TipoUsuario.PROFISSIONAL;
+        } catch (Exception e) {
+            logger.error("Erro ao verificar se é profissional", e);
+            return false;
+        }
+    }
 }
