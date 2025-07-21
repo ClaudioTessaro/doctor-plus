@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, TrendingDown, Eye } from 'lucide-react';
 import { apiClient, EstoqueResponse } from '../../lib/api';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export function EstoqueAlerts() {
   const [itensAlerta, setItensAlerta] = useState<EstoqueResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     fetchItensAlerta();
