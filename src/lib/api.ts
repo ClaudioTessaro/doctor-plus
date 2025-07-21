@@ -112,6 +112,12 @@ class ApiClient {
     });
   }
 
+  async deletePaciente(id: string) {
+    return this.request(`/pacientes/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async searchPacientes(termo: string) {
     return this.request<PacienteResponse[]>(`/pacientes/buscar?termo=${encodeURIComponent(termo)}`);
   }

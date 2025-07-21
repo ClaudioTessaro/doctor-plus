@@ -1,9 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, FileText, Phone, Mail } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Phone, Mail, Eye, Loader2 } from 'lucide-react';
 import { apiClient, PacienteResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import { PacienteModal } from '../components/Pacientes/PacienteModal';
+import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
+
+interface PacienteFormData {
+  nome: string;
+  cpf: string;
+  email: string;
+  telefone: string;
+  endereco: string;
+  dataNascimento: string;
+}
 
 export function Pacientes() {
   const [pacientes, setPacientes] = useState<PacienteResponse[]>([]);
@@ -11,6 +22,9 @@ export function Pacientes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingPaciente, setEditingPaciente] = useState<PacienteResponse | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [pacienteToDelete, setPacienteToDelete] = useState<PacienteResponse | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchPacientes();
@@ -18,23 +32,97 @@ export function Pacientes() {
 
   const fetchPacientes = async () => {
     try {
+      setLoading(true);
       const data = await apiClient.getPacientes();
       setPacientes(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching pacientes:', error);
-      toast.error('📋 Erro ao carregar pacientes', {
-        description: 'Não foi possível carregar a lista de pacientes.',
+      toast.error('❌ Erro ao carregar pacientes', {
+        description: error.message || 'Não foi possível carregar a lista de pacientes.',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredPacientes = pacientes.filter(paciente =>
-    paciente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    paciente.cpf.includes(searchTerm) ||
-    paciente.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleCreatePaciente = async (data: PacienteFormData) => {
+    try {
+      const newPaciente = await apiClient.createPaciente(data);
+      setPacientes(prev => [newPaciente, ...prev]);
+      
+      toast.success('✅ Paciente cadastrado com sucesso!', {
+        description: `${data.nome} foi adicionado ao sistema.`,
+      });
+    } catch (error: any) {
+      console.error('Error creating paciente:', error);
+      
+      // Tratamento específico de erros do backend
+      let errorMessage = 'Não foi possível cadastrar o paciente.';
+      if (error.message.includes('CPF já está cadastrado')) {
+        errorMessage = 'Este CPF já está cadastrado no sistema.';
+      } else if (error.message.includes('Email já está cadastrado')) {
+        errorMessage = 'Este e-mail já está cadastrado no sistema.';
+      }
+      
+      toast.error('❌ Erro no cadastro', {
+        description: errorMessage,
+      });
+      throw error;
+    }
+  };
+
+  const handleUpdatePaciente = async (data: PacienteFormData) => {
+    if (!editingPaciente) return;
+
+    try {
+      const updatedPaciente = await apiClient.updatePaciente(editingPaciente.id, data);
+      setPacientes(prev => 
+        prev.map(p => p.id === editingPaciente.id ? updatedPaciente : p)
+      );
+      
+      toast.success('✅ Paciente atualizado com sucesso!', {
+        description: `Dados de ${data.nome} foram atualizados.`,
+      });
+    } catch (error: any) {
+      console.error('Error updating paciente:', error);
+      
+      let errorMessage = 'Não foi possível atualizar o paciente.';
+      if (error.message.includes('CPF já está cadastrado')) {
+        errorMessage = 'Este CPF já está cadastrado para outro paciente.';
+      } else if (error.message.includes('Email já está cadastrado')) {
+        errorMessage = 'Este e-mail já está cadastrado para outro paciente.';
+      }
+      
+      toast.error('❌ Erro na atualização', {
+        description: errorMessage,
+      });
+      throw error;
+    }
+  };
+
+  const handleDeletePaciente = async () => {
+    if (!pacienteToDelete) return;
+
+    try {
+      setDeleting(true);
+      await apiClient.deletePaciente(pacienteToDelete.id);
+      setPacientes(prev => prev.filter(p => p.id !== pacienteToDelete.id));
+      
+      toast.success('✅ Paciente removido com sucesso!', {
+        description: `${pacienteToDelete.nome} foi removido do sistema.`,
+      });
+      
+      setShowDeleteDialog(false);
+      setPacienteToDelete(null);
+    } catch (error: any) {
+      console.error('Error deleting paciente:', error);
+      toast.error('❌ Erro ao remover paciente', {
+        description: error.message || 'Não foi possível remover o paciente.',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const openModal = (paciente?: PacienteResponse) => {
     setEditingPaciente(paciente || null);
@@ -46,10 +134,41 @@ export function Pacientes() {
     setEditingPaciente(null);
   };
 
+  const openDeleteDialog = (paciente: PacienteResponse) => {
+    setPacienteToDelete(paciente);
+    setShowDeleteDialog(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setShowDeleteDialog(false);
+    setPacienteToDelete(null);
+  };
+
+  const filteredPacientes = pacientes.filter(paciente =>
+    paciente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    paciente.cpf.includes(searchTerm) ||
+    paciente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    paciente.telefone.includes(searchTerm)
+  );
+
+  const formatCPF = (cpf: string) => {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  };
+
+  const formatPhone = (phone: string) => {
+    if (phone.length === 11) {
+      return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando pacientes...</p>
+        </div>
       </div>
     );
   }
@@ -59,7 +178,9 @@ export function Pacientes() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Pacientes</h1>
-          <p className="text-gray-600 mt-2">Gerencie o cadastro de pacientes</p>
+          <p className="text-gray-600 mt-2">
+            Gerencie o cadastro de pacientes ({pacientes.length} cadastrados)
+          </p>
         </div>
         <button
           onClick={() => openModal()}
@@ -76,7 +197,7 @@ export function Pacientes() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar por nome, CPF ou e-mail..."
+              placeholder="Buscar por nome, CPF, e-mail ou telefone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -88,7 +209,7 @@ export function Pacientes() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-900">Nome</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-900">Paciente</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-900">CPF</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-900">Idade</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-900">Contato</th>
@@ -97,92 +218,106 @@ export function Pacientes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredPacientes.map((paciente) => {
-                const idade = paciente.idade;
-                
-                return (
-                  <tr key={paciente.id} className="hover:bg-gray-50">
-                    <td className="py-4 px-4">
+              {filteredPacientes.map((paciente) => (
+                <tr key={paciente.id} className="hover:bg-gray-50">
+                  <td className="py-4 px-4">
+                    <div>
                       <div className="font-medium text-gray-900">{paciente.nome}</div>
-                    </td>
-                    <td className="py-4 px-4 text-gray-600">{paciente.cpf}</td>
-                    <td className="py-4 px-4 text-gray-600">{idade} anos</td>
-                    <td className="py-4 px-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="h-4 w-4 mr-1" />
-                          {paciente.telefone}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-1" />
-                          {paciente.email}
-                        </div>
+                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                        {paciente.endereco}
                       </div>
-                    </td>
-                    <td className="py-4 px-4 text-gray-600">
-                      {format(new Date(paciente.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => openModal(paciente)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Ver prontuário"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </button>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-gray-600 font-mono">
+                    {formatCPF(paciente.cpf)}
+                  </td>
+                  <td className="py-4 px-4 text-gray-600">
+                    {paciente.idade} anos
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{formatPhone(paciente.telefone)}</span>
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Mail className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{paciente.email}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-gray-600">
+                    {format(new Date(paciente.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => openModal(paciente)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Editar paciente"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Ver prontuário"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteDialog(paciente)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Excluir paciente"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
           {filteredPacientes.length === 0 && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-lg mb-2">
                 {searchTerm ? 'Nenhum paciente encontrado' : 'Nenhum paciente cadastrado'}
               </p>
+              {searchTerm ? (
+                <p className="text-gray-400 text-sm">
+                  Tente buscar por nome, CPF, e-mail ou telefone
+                </p>
+              ) : (
+                <p className="text-gray-400 text-sm">
+                  Clique em "Novo Paciente" para começar
+                </p>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal seria implementado aqui */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">
-              {editingPaciente ? 'Editar Paciente' : 'Novo Paciente'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Formulário de cadastro será implementado aqui
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal de Cadastro/Edição */}
+      <PacienteModal
+        isOpen={showModal}
+        onClose={closeModal}
+        onSave={editingPaciente ? handleUpdatePaciente : handleCreatePaciente}
+        paciente={editingPaciente}
+      />
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={closeDeleteDialog}
+        onConfirm={handleDeletePaciente}
+        title="Excluir Paciente"
+        message={`Tem certeza que deseja excluir o paciente "${pacienteToDelete?.nome}"? Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleting}
+      />
     </div>
   );
 }
