@@ -5,6 +5,11 @@
 /* Prevent horizontal scroll */
 html, body {
   overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
 }
 
 /* Custom scrollbar */

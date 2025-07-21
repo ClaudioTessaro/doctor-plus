@@ -33,7 +33,7 @@ export function Sidebar() {
   );
 
   return (
-    <div className={`bg-white shadow-lg transition-all duration-300 flex flex-col h-full ${collapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`bg-white shadow-lg transition-all duration-300 flex flex-col h-screen ${collapsed ? 'w-16' : 'w-64'}`}>
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className={`flex items-center ${collapsed ? 'justify-center' : ''}`}>
@@ -55,7 +55,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-h-0">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
         {filteredMenuItems.map((item) => (
           <NavLink
             key={item.path}
@@ -72,9 +73,9 @@ export function Sidebar() {
             {!collapsed && <span className="ml-3">{item.label}</span>}
           </NavLink>
         ))}
-      </nav>
+        </nav>
 
-      <div className="p-4 border-t border-gray-200 mt-auto">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
         {!collapsed && user && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-sm font-medium text-gray-900">{user.nome}</div>
@@ -88,6 +89,7 @@ export function Sidebar() {
           <LogOut className="h-5 w-5" />
           {!collapsed && <span className="ml-3">Sair</span>}
         </button>
+        </div>
       </div>
     </div>
   );
