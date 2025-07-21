@@ -68,9 +68,9 @@ public class EstoqueService {
 
     @Transactional(readOnly = true)
     public PageResponse<EstoqueResponse> listarTodos(Pageable pageable, String userEmail) {
-        // Verificar se é admin ou profissional
-        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
-            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem acessar estoque.");
         }
         
         Page<Estoque> itensPage = estoqueRepository.findByAtivoTrue(pageable);
@@ -115,9 +115,9 @@ public class EstoqueService {
 
     @Transactional(readOnly = true)
     public List<EstoqueResponse> listarTodosSimples(String userEmail) {
-        // Verificar se é admin ou profissional
-        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
-            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem acessar estoque.");
         }
         
         List<Estoque> itens = estoqueRepository.findByAtivoTrueOrderByNome();
@@ -126,9 +126,9 @@ public class EstoqueService {
 
     @Transactional(readOnly = true)
     public List<String> listarCategorias(String userEmail) {
-        // Verificar se é admin ou profissional
-        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
-            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem acessar estoque.");
         }
         
         return estoqueRepository.findAllCategorias();
@@ -136,9 +136,9 @@ public class EstoqueService {
 
     @Transactional(readOnly = true)
     public PageResponse<EstoqueResponse> buscarPorTermo(String termo, Pageable pageable, String userEmail) {
-        // Verificar se é admin ou profissional
-        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
-            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem acessar estoque.");
         }
         
         Page<Estoque> itensPage = estoqueRepository.buscarPorTermo(termo, pageable);

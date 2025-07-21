@@ -35,6 +35,9 @@ public interface ProfissionalRepository extends JpaRepository<Profissional, Long
     @Query("SELECT COUNT(p) FROM Profissional p WHERE p.usuario.ativo = true")
     Long countTotalProfissionais();
 
+    @Query("SELECT COUNT(p) FROM Profissional p WHERE p.usuario.ativo = true AND p.id IN :profissionalIds")
+    Long countAccessibleProfissionais(@Param("profissionalIds") List<Long> profissionalIds);
+
     // Métodos para controle de acesso
     @Query("SELECT p FROM Profissional p WHERE " +
            "p.usuario.ativo = true AND " +

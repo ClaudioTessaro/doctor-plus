@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -26,6 +27,7 @@ public class DashboardService {
     private final EstoqueRepository estoqueRepository;
     private final ProfissionalRepository profissionalRepository;
     private final SecretarioRepository secretarioRepository;
+    private final SecurityService securityService;
 
     @Autowired
     public DashboardService(PacienteRepository pacienteRepository,
@@ -33,17 +35,19 @@ public class DashboardService {
                            HistoricoRepository historicoRepository,
                            EstoqueRepository estoqueRepository,
                            ProfissionalRepository profissionalRepository,
-                           SecretarioRepository secretarioRepository) {
+                           SecretarioRepository secretarioRepository,
+                           SecurityService securityService) {
         this.pacienteRepository = pacienteRepository;
         this.consultaRepository = consultaRepository;
         this.historicoRepository = historicoRepository;
         this.estoqueRepository = estoqueRepository;
         this.profissionalRepository = profissionalRepository;
         this.secretarioRepository = secretarioRepository;
+        this.securityService = securityService;
     }
 
-    public DashboardStatsResponse getStats() {
-        logger.info("Buscando estatísticas do dashboard");
+    public DashboardStatsResponse getStats(String userEmail) {
+        logger.info("Buscando estatísticas do dashboard para: {}", userEmail);
 
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime inicioMes = hoje.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
@@ -51,39 +55,89 @@ public class DashboardService {
         LocalDateTime ontem = hoje.minusDays(1);
         LocalDateTime inicioSemana = hoje.minusDays(hoje.getDayOfWeek().getValue() - 1).withHour(0).withMinute(0).withSecond(0);
 
+        // Obter IDs acessíveis baseado no tipo de usuário
+        List<Long> accessiblePacienteIds = securityService.getAccessiblePacienteIds(userEmail);
+        List<Long> accessibleProfissionalIds = securityService.getAccessibleProfissionalIds(userEmail);
+        List<Long> accessibleSecretarioIds = securityService.getAccessibleSecretarioIds(userEmail);
+
         // Estatísticas gerais
-        Long totalPacientes = pacienteRepository.countTotalPacientes();
-        Long totalProfissionais = profissionalRepository.countTotalProfissionais();
-        Long totalSecretarios = secretarioRepository.countTotalSecretarios();
-        Long totalHistoricos = historicoRepository.countTotalHistoricos();
+        Long totalPacientes = accessiblePacienteIds == null ? 
+            pacienteRepository.countTotalPacientes() : 
+            pacienteRepository.countAccessiblePacientes(accessiblePacienteIds);
+            
+        Long totalProfissionais = accessibleProfissionalIds == null ? 
+            profissionalRepository.countTotalProfissionais() : 
+            profissionalRepository.countAccessibleProfissionais(accessibleProfissionalIds);
+            
+        Long totalSecretarios = accessibleSecretarioIds == null ? 
+            secretarioRepository.countTotalSecretarios() : 
+            secretarioRepository.countAccessibleSecretarios(accessibleSecretarioIds);
+            
+        Long totalHistoricos = accessibleProfissionalIds == null ? 
+            historicoRepository.countTotalHistoricos() : 
+            historicoRepository.countAccessibleHistoricos(accessibleProfissionalIds);
 
         // Consultas
-        Long consultasHoje = consultaRepository.countConsultasNoPeriodo(
-            hoje.withHour(0).withMinute(0).withSecond(0),
-            hoje.withHour(23).withMinute(59).withSecond(59)
-        );
-        Long consultasSemana = consultaRepository.countConsultasNoPeriodo(inicioSemana, hoje);
-        Long consultasMes = consultaRepository.countConsultasNoPeriodo(inicioMes, fimMes);
+        Long consultasHoje = accessibleProfissionalIds == null ?
+            consultaRepository.countConsultasNoPeriodo(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59)
+            ) :
+            consultaRepository.countAccessibleConsultasNoPeriodo(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59),
+                accessibleProfissionalIds
+            );
+            
+        Long consultasSemana = accessibleProfissionalIds == null ?
+            consultaRepository.countConsultasNoPeriodo(inicioSemana, hoje) :
+            consultaRepository.countAccessibleConsultasNoPeriodo(inicioSemana, hoje, accessibleProfissionalIds);
+            
+        Long consultasMes = accessibleProfissionalIds == null ?
+            consultaRepository.countConsultasNoPeriodo(inicioMes, fimMes) :
+            consultaRepository.countAccessibleConsultasNoPeriodo(inicioMes, fimMes, accessibleProfissionalIds);
 
         // Estoque
-        Long itensEstoque = estoqueRepository.countByAtivoTrue();
-        Long itensEstoqueBaixo = estoqueRepository.countItensComEstoqueBaixo();
-        Long itensEsgotados = estoqueRepository.countItensEsgotados();
+        Long itensEstoque = securityService.isAdmin(userEmail) ? 
+            estoqueRepository.countByAtivoTrue() : 0L;
+        Long itensEstoqueBaixo = securityService.isAdmin(userEmail) ? 
+            estoqueRepository.countItensComEstoqueBaixo() : 0L;
+        Long itensEsgotados = securityService.isAdmin(userEmail) ? 
+            estoqueRepository.countItensEsgotados() : 0L;
 
         // Pacientes novos
-        Long pacientesNovosHoje = pacienteRepository.countPacientesNovos(
-            hoje.withHour(0).withMinute(0).withSecond(0),
-            hoje.withHour(23).withMinute(59).withSecond(59)
-        );
-        Long pacientesNovosSemana = pacienteRepository.countPacientesNovos(inicioSemana, hoje);
+        Long pacientesNovosHoje = accessiblePacienteIds == null ?
+            pacienteRepository.countPacientesNovos(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59)
+            ) :
+            pacienteRepository.countAccessiblePacientesNovos(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59),
+                accessiblePacienteIds
+            );
+            
+        Long pacientesNovosSemana = accessiblePacienteIds == null ?
+            pacienteRepository.countPacientesNovos(inicioSemana, hoje) :
+            pacienteRepository.countAccessiblePacientesNovos(inicioSemana, hoje, accessiblePacienteIds);
 
         // Consultas por status
-        Long consultasAgendadas = consultaRepository.countByStatus(StatusConsulta.AGENDADA);
-        Long consultasConfirmadas = consultaRepository.countByStatus(StatusConsulta.CONFIRMADA);
-        Long consultasRealizadas = consultaRepository.countConsultasRealizadasMes(inicioMes, fimMes);
+        Long consultasAgendadas = accessibleProfissionalIds == null ?
+            consultaRepository.countByStatus(StatusConsulta.AGENDADA) :
+            consultaRepository.countAccessibleByStatus(StatusConsulta.AGENDADA, accessibleProfissionalIds);
+            
+        Long consultasConfirmadas = accessibleProfissionalIds == null ?
+            consultaRepository.countByStatus(StatusConsulta.CONFIRMADA) :
+            consultaRepository.countAccessibleByStatus(StatusConsulta.CONFIRMADA, accessibleProfissionalIds);
+            
+        Long consultasRealizadas = accessibleProfissionalIds == null ?
+            consultaRepository.countConsultasRealizadasMes(inicioMes, fimMes) :
+            consultaRepository.countAccessibleConsultasRealizadasMes(inicioMes, fimMes, accessibleProfissionalIds);
 
         // Receita do mês
-        BigDecimal receitaMes = consultaRepository.sumReceitaMes(inicioMes, fimMes);
+        BigDecimal receitaMes = accessibleProfissionalIds == null ?
+            consultaRepository.sumReceitaMes(inicioMes, fimMes) :
+            consultaRepository.sumAccessibleReceitaMes(inicioMes, fimMes, accessibleProfissionalIds);
 
         DashboardStatsResponse stats = new DashboardStatsResponse();
         stats.setTotalPacientes(totalPacientes);
@@ -106,15 +160,25 @@ public class DashboardService {
         return stats;
     }
 
-    public DashboardStatsResponse.PacienteStats getPacienteStats() {
+    public DashboardStatsResponse.PacienteStats getPacienteStats(String userEmail) {
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime inicioMes = hoje.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime mesPassado = inicioMes.minusMonths(1);
         LocalDateTime fimMesPassado = mesPassado.withDayOfMonth(mesPassado.toLocalDate().lengthOfMonth());
 
-        Long totalPacientes = pacienteRepository.countTotalPacientes();
-        Long pacientesMes = pacienteRepository.countPacientesNovos(inicioMes, hoje);
-        Long pacientesMesPassado = pacienteRepository.countPacientesNovos(mesPassado, fimMesPassado);
+        List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
+        
+        Long totalPacientes = accessibleIds == null ?
+            pacienteRepository.countTotalPacientes() :
+            pacienteRepository.countAccessiblePacientes(accessibleIds);
+            
+        Long pacientesMes = accessibleIds == null ?
+            pacienteRepository.countPacientesNovos(inicioMes, hoje) :
+            pacienteRepository.countAccessiblePacientesNovos(inicioMes, hoje, accessibleIds);
+            
+        Long pacientesMesPassado = accessibleIds == null ?
+            pacienteRepository.countPacientesNovos(mesPassado, fimMesPassado) :
+            pacienteRepository.countAccessiblePacientesNovos(mesPassado, fimMesPassado, accessibleIds);
 
         Double crescimentoMensal = calcularCrescimento(pacientesMes, pacientesMesPassado);
 
@@ -126,16 +190,32 @@ public class DashboardService {
         return stats;
     }
 
-    public DashboardStatsResponse.ConsultaStats getConsultaStats() {
+    public DashboardStatsResponse.ConsultaStats getConsultaStats(String userEmail) {
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime inicioMes = hoje.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime fimMes = hoje.withDayOfMonth(hoje.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59);
 
-        Long totalMes = consultaRepository.countConsultasNoPeriodo(inicioMes, fimMes);
-        Long agendadas = consultaRepository.countByStatus(StatusConsulta.AGENDADA);
-        Long confirmadas = consultaRepository.countByStatus(StatusConsulta.CONFIRMADA);
-        Long realizadas = consultaRepository.countConsultasRealizadasMes(inicioMes, fimMes);
-        Long canceladas = consultaRepository.countByStatus(StatusConsulta.CANCELADA);
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        Long totalMes = accessibleIds == null ?
+            consultaRepository.countConsultasNoPeriodo(inicioMes, fimMes) :
+            consultaRepository.countAccessibleConsultasNoPeriodo(inicioMes, fimMes, accessibleIds);
+            
+        Long agendadas = accessibleIds == null ?
+            consultaRepository.countByStatus(StatusConsulta.AGENDADA) :
+            consultaRepository.countAccessibleByStatus(StatusConsulta.AGENDADA, accessibleIds);
+            
+        Long confirmadas = accessibleIds == null ?
+            consultaRepository.countByStatus(StatusConsulta.CONFIRMADA) :
+            consultaRepository.countAccessibleByStatus(StatusConsulta.CONFIRMADA, accessibleIds);
+            
+        Long realizadas = accessibleIds == null ?
+            consultaRepository.countConsultasRealizadasMes(inicioMes, fimMes) :
+            consultaRepository.countAccessibleConsultasRealizadasMes(inicioMes, fimMes, accessibleIds);
+            
+        Long canceladas = accessibleIds == null ?
+            consultaRepository.countByStatus(StatusConsulta.CANCELADA) :
+            consultaRepository.countAccessibleByStatus(StatusConsulta.CANCELADA, accessibleIds);
 
         Double taxaRealizacao = totalMes > 0 ? (realizadas.doubleValue() / totalMes.doubleValue()) * 100 : 0.0;
 
@@ -150,22 +230,38 @@ public class DashboardService {
         return stats;
     }
 
-    public DashboardStatsResponse.FinanceiroStats getFinanceiroStats() {
+    public DashboardStatsResponse.FinanceiroStats getFinanceiroStats(String userEmail) {
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime inicioMes = hoje.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime fimMes = hoje.withDayOfMonth(hoje.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59);
         LocalDateTime mesPassado = inicioMes.minusMonths(1);
         LocalDateTime fimMesPassado = mesPassado.withDayOfMonth(mesPassado.toLocalDate().lengthOfMonth());
 
-        BigDecimal receitaMes = consultaRepository.sumReceitaMes(inicioMes, fimMes);
-        BigDecimal receitaMesPassado = consultaRepository.sumReceitaMes(mesPassado, fimMesPassado);
-        BigDecimal receitaHoje = consultaRepository.sumReceitaDia(
-            hoje.withHour(0).withMinute(0).withSecond(0),
-            hoje.withHour(23).withMinute(59).withSecond(59)
-        );
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        BigDecimal receitaMes = accessibleIds == null ?
+            consultaRepository.sumReceitaMes(inicioMes, fimMes) :
+            consultaRepository.sumAccessibleReceitaMes(inicioMes, fimMes, accessibleIds);
+            
+        BigDecimal receitaMesPassado = accessibleIds == null ?
+            consultaRepository.sumReceitaMes(mesPassado, fimMesPassado) :
+            consultaRepository.sumAccessibleReceitaMes(mesPassado, fimMesPassado, accessibleIds);
+            
+        BigDecimal receitaHoje = accessibleIds == null ?
+            consultaRepository.sumReceitaDia(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59)
+            ) :
+            consultaRepository.sumAccessibleReceitaDia(
+                hoje.withHour(0).withMinute(0).withSecond(0),
+                hoje.withHour(23).withMinute(59).withSecond(59),
+                accessibleIds
+            );
 
         Double crescimentoMensal = calcularCrescimentoFinanceiro(receitaMes, receitaMesPassado);
-        BigDecimal ticketMedio = consultaRepository.avgTicketMedio(inicioMes, fimMes);
+        BigDecimal ticketMedio = accessibleIds == null ?
+            consultaRepository.avgTicketMedio(inicioMes, fimMes) :
+            consultaRepository.avgAccessibleTicketMedio(inicioMes, fimMes, accessibleIds);
 
         DashboardStatsResponse.FinanceiroStats stats = new DashboardStatsResponse.FinanceiroStats();
         stats.setReceitaMes(receitaMes != null ? receitaMes : BigDecimal.ZERO);

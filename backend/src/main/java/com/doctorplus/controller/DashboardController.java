@@ -1,6 +1,8 @@
 package com.doctorplus.controller;
 
 import com.doctorplus.dto.response.DashboardStatsResponse;
+import com.doctorplus.security.CurrentUser;
+import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,32 +28,32 @@ public class DashboardController {
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Estatísticas do dashboard", description = "Retorna todas as estatísticas para o dashboard")
-    public ResponseEntity<DashboardStatsResponse> getStats() {
-        DashboardStatsResponse stats = dashboardService.getStats();
+    public ResponseEntity<DashboardStatsResponse> getStats(@CurrentUser UserPrincipal currentUser) {
+        DashboardStatsResponse stats = dashboardService.getStats(currentUser.getEmail());
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/stats/pacientes")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Estatísticas de pacientes", description = "Retorna estatísticas detalhadas de pacientes")
-    public ResponseEntity<DashboardStatsResponse.PacienteStats> getPacienteStats() {
-        DashboardStatsResponse.PacienteStats stats = dashboardService.getPacienteStats();
+    public ResponseEntity<DashboardStatsResponse.PacienteStats> getPacienteStats(@CurrentUser UserPrincipal currentUser) {
+        DashboardStatsResponse.PacienteStats stats = dashboardService.getPacienteStats(currentUser.getEmail());
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/stats/consultas")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Estatísticas de consultas", description = "Retorna estatísticas detalhadas de consultas")
-    public ResponseEntity<DashboardStatsResponse.ConsultaStats> getConsultaStats() {
-        DashboardStatsResponse.ConsultaStats stats = dashboardService.getConsultaStats();
+    public ResponseEntity<DashboardStatsResponse.ConsultaStats> getConsultaStats(@CurrentUser UserPrincipal currentUser) {
+        DashboardStatsResponse.ConsultaStats stats = dashboardService.getConsultaStats(currentUser.getEmail());
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/stats/financeiro")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Estatísticas financeiras", description = "Retorna estatísticas financeiras")
-    public ResponseEntity<DashboardStatsResponse.FinanceiroStats> getFinanceiroStats() {
-        DashboardStatsResponse.FinanceiroStats stats = dashboardService.getFinanceiroStats();
+    public ResponseEntity<DashboardStatsResponse.FinanceiroStats> getFinanceiroStats(@CurrentUser UserPrincipal currentUser) {
+        DashboardStatsResponse.FinanceiroStats stats = dashboardService.getFinanceiroStats(currentUser.getEmail());
         return ResponseEntity.ok(stats);
     }
 }
