@@ -60,7 +60,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -81,15 +81,19 @@ export function Dashboard() {
       {/* Charts and Widgets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Consultas Chart */}
-        <ConsultasChart />
+        <div className="min-h-0">
+          <ConsultasChart />
+        </div>
 
         {/* Financeiro Chart */}
-        <FinanceiroChart />
+        <div className="min-h-0">
+          <FinanceiroChart />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Próximas Consultas */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 min-h-0">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
@@ -103,7 +107,7 @@ export function Dashboard() {
             </button>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-96 overflow-y-auto">
             {loading ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className="animate-pulse flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
@@ -167,11 +171,13 @@ export function Dashboard() {
         </div>
 
         {/* Alertas de Estoque */}
-        <EstoqueAlerts />
+        <div className="min-h-0">
+          <EstoqueAlerts />
+        </div>
       </div>
 
       {/* Atividade Recente */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 min-h-0">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center">
             <Activity className="h-5 w-5 mr-2" />

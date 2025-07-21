@@ -99,7 +99,7 @@ export function ConsultasChart() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 h-fit">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
           <Calendar className="h-5 w-5 mr-2" />
@@ -113,7 +113,7 @@ export function ConsultasChart() {
 
       <div className="space-y-4">
         {statusData.map((item, index) => (
-          <div key={index} className={`p-4 rounded-lg ${item.bgColor} border border-opacity-20`}>
+          <div key={index} className={`p-4 rounded-lg ${item.bgColor} border border-opacity-20 transition-all hover:shadow-sm`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <div className={`${item.color} rounded-lg p-2`}>
@@ -130,7 +130,7 @@ export function ConsultasChart() {
             </div>
             
             {/* Barra de progresso */}
-            <div className="w-full bg-white bg-opacity-50 rounded-full h-2">
+            <div className="w-full bg-white bg-opacity-50 rounded-full h-2 overflow-hidden">
               <div
                 className={`${item.color} h-2 rounded-full transition-all duration-300`}
                 style={{ width: `${item.percentage}%` }}
