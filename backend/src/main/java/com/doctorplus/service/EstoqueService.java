@@ -8,7 +8,6 @@ import com.doctorplus.exception.BusinessException;
 import com.doctorplus.exception.ResourceNotFoundException;
 import com.doctorplus.mapper.EstoqueMapper;
 import com.doctorplus.repository.EstoqueRepository;
-import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -52,7 +50,7 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public EstoqueResponse buscarPorId(UUID id) {
+    public EstoqueResponse buscarPorId(Long id) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
         return estoqueMapper.toResponse(estoque);
@@ -118,7 +116,7 @@ public class EstoqueService {
         return estoqueRepository.findAllCategorias();
     }
 
-    public EstoqueResponse atualizarItem(UUID id, EstoqueCreateRequest request) {
+    public EstoqueResponse atualizarItem(Long id, EstoqueCreateRequest request) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
@@ -135,7 +133,7 @@ public class EstoqueService {
         return estoqueMapper.toResponse(estoque);
     }
 
-    public EstoqueResponse ajustarQuantidade(UUID id, Integer novaQuantidade) {
+    public EstoqueResponse ajustarQuantidade(Long id, Integer novaQuantidade) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
@@ -153,7 +151,7 @@ public class EstoqueService {
         return estoqueMapper.toResponse(estoque);
     }
 
-    public EstoqueResponse adicionarQuantidade(UUID id, Integer quantidade) {
+    public EstoqueResponse adicionarQuantidade(Long id, Integer quantidade) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
@@ -168,7 +166,7 @@ public class EstoqueService {
         return estoqueMapper.toResponse(estoque);
     }
 
-    public EstoqueResponse removerQuantidade(UUID id, Integer quantidade) {
+    public EstoqueResponse removerQuantidade(Long id, Integer quantidade) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("estoque.not.found")));
 
@@ -187,7 +185,7 @@ public class EstoqueService {
         return estoqueMapper.toResponse(estoque);
     }
 
-    public void desativarItem(UUID id) {
+    public void desativarItem(Long id) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
 
@@ -197,7 +195,7 @@ public class EstoqueService {
         logger.info("Item de estoque desativado: {}", estoque.getCodigo());
     }
 
-    public void ativarItem(UUID id) {
+    public void ativarItem(Long id) {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item de estoque não encontrado"));
 

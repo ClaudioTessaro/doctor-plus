@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/consultas")
@@ -42,7 +41,7 @@ public class ConsultaController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar consulta por ID", description = "Retorna os dados de uma consulta específica")
-    public ResponseEntity<ConsultaResponse> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<ConsultaResponse> buscarPorId(@PathVariable Long id) {
         ConsultaResponse response = consultaService.buscarPorId(id);
         return ResponseEntity.ok(response);
     }
@@ -50,7 +49,7 @@ public class ConsultaController {
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar consultas do paciente", description = "Retorna todas as consultas de um paciente")
-    public ResponseEntity<List<ConsultaResponse>> listarPorPaciente(@PathVariable UUID pacienteId) {
+    public ResponseEntity<List<ConsultaResponse>> listarPorPaciente(@PathVariable Long pacienteId) {
         List<ConsultaResponse> response = consultaService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(response);
     }
@@ -58,7 +57,7 @@ public class ConsultaController {
     @GetMapping("/profissional/{profissionalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar consultas do profissional", description = "Retorna todas as consultas de um profissional")
-    public ResponseEntity<List<ConsultaResponse>> listarPorProfissional(@PathVariable UUID profissionalId) {
+    public ResponseEntity<List<ConsultaResponse>> listarPorProfissional(@PathVariable Long profissionalId) {
         List<ConsultaResponse> response = consultaService.listarPorProfissional(profissionalId);
         return ResponseEntity.ok(response);
     }
@@ -78,7 +77,7 @@ public class ConsultaController {
     @Operation(summary = "Listar consultas do profissional por período", 
                description = "Retorna consultas de um profissional em um período específico")
     public ResponseEntity<List<ConsultaResponse>> listarPorProfissionalEPeriodo(
-            @PathVariable UUID profissionalId,
+            @PathVariable Long profissionalId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
         List<ConsultaResponse> response = consultaService.listarPorProfissionalEPeriodo(profissionalId, inicio, fim);
@@ -97,7 +96,7 @@ public class ConsultaController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Atualizar consulta", description = "Atualiza os dados de uma consulta")
     public ResponseEntity<ConsultaResponse> atualizarConsulta(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @Valid @RequestBody ConsultaCreateRequest request) {
         ConsultaResponse response = consultaService.atualizarConsulta(id, request);
         return ResponseEntity.ok(response);
@@ -107,7 +106,7 @@ public class ConsultaController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Alterar status da consulta", description = "Altera o status de uma consulta")
     public ResponseEntity<ConsultaResponse> alterarStatus(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @RequestParam String status) {
         StatusConsulta statusEnum = StatusConsulta.valueOf(status);
         ConsultaResponse response = consultaService.alterarStatus(id, statusEnum);
@@ -117,7 +116,7 @@ public class ConsultaController {
     @PatchMapping("/{id}/cancelar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Cancelar consulta", description = "Cancela uma consulta agendada")
-    public ResponseEntity<Void> cancelarConsulta(@PathVariable UUID id) {
+    public ResponseEntity<Void> cancelarConsulta(@PathVariable Long id) {
         consultaService.cancelarConsulta(id);
         return ResponseEntity.noContent().build();
     }
@@ -125,7 +124,7 @@ public class ConsultaController {
     @PatchMapping("/{id}/confirmar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Confirmar consulta", description = "Confirma uma consulta agendada")
-    public ResponseEntity<Void> confirmarConsulta(@PathVariable UUID id) {
+    public ResponseEntity<Void> confirmarConsulta(@PathVariable Long id) {
         consultaService.confirmarConsulta(id);
         return ResponseEntity.noContent().build();
     }
@@ -133,7 +132,7 @@ public class ConsultaController {
     @PatchMapping("/{id}/realizar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Marcar como realizada", description = "Marca uma consulta como realizada")
-    public ResponseEntity<Void> marcarComoRealizada(@PathVariable UUID id) {
+    public ResponseEntity<Void> marcarComoRealizada(@PathVariable Long id) {
         consultaService.marcarComoRealizada(id);
         return ResponseEntity.noContent().build();
     }

@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -45,7 +44,7 @@ public class HistoricoService {
         this.historicoMapper = historicoMapper;
     }
 
-    public HistoricoResponse criarHistorico(HistoricoCreateRequest request, UUID usuarioId) {
+    public HistoricoResponse criarHistorico(HistoricoCreateRequest request, Long usuarioId) {
         logger.info("Criando novo histórico para paciente: {}", request.getPacienteId());
 
         // Buscar entidades
@@ -67,7 +66,7 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public HistoricoResponse buscarPorId(UUID id) {
+    public HistoricoResponse buscarPorId(Long id) {
         Historico historico = historicoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Histórico não encontrado"));
         return historicoMapper.toResponse(historico);
@@ -86,13 +85,13 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public List<HistoricoResponse> listarPorPaciente(UUID pacienteId) {
+    public List<HistoricoResponse> listarPorPaciente(Long pacienteId) {
         List<Historico> historicos = historicoRepository.findByPacienteIdOrderByDataConsultaDesc(pacienteId);
         return historicoMapper.toResponseList(historicos);
     }
 
     @Transactional(readOnly = true)
-    public List<HistoricoResponse> listarPorProfissional(UUID profissionalId) {
+    public List<HistoricoResponse> listarPorProfissional(Long profissionalId) {
         List<Historico> historicos = historicoRepository.findByProfissionalIdOrderByDataConsultaDesc(profissionalId);
         return historicoMapper.toResponseList(historicos);
     }
@@ -115,7 +114,7 @@ public class HistoricoService {
         return historicoMapper.toResponseList(historicos);
     }
 
-    public HistoricoResponse atualizarHistorico(UUID id, HistoricoCreateRequest request) {
+    public HistoricoResponse atualizarHistorico(Long id, HistoricoCreateRequest request) {
         Historico historico = historicoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Histórico não encontrado"));
 
@@ -127,7 +126,7 @@ public class HistoricoService {
         return historicoMapper.toResponse(historico);
     }
 
-    public void excluirHistorico(UUID id) {
+    public void excluirHistorico(Long id) {
         Historico historico = historicoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Histórico não encontrado"));
 

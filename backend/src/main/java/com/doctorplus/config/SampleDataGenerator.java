@@ -1,9 +1,19 @@
 package com.doctorplus.config;
 
-import com.doctorplus.domain.entity.*;
+import com.doctorplus.domain.entity.Consulta;
+import com.doctorplus.domain.entity.Estoque;
+import com.doctorplus.domain.entity.Historico;
+import com.doctorplus.domain.entity.Paciente;
+import com.doctorplus.domain.entity.Profissional;
+import com.doctorplus.domain.entity.Usuario;
 import com.doctorplus.domain.enums.StatusConsulta;
 import com.doctorplus.domain.enums.TipoUsuario;
-import com.doctorplus.repository.*;
+import com.doctorplus.repository.ConsultaRepository;
+import com.doctorplus.repository.EstoqueRepository;
+import com.doctorplus.repository.HistoricoRepository;
+import com.doctorplus.repository.PacienteRepository;
+import com.doctorplus.repository.ProfissionalRepository;
+import com.doctorplus.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +25,8 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 @Component
 @Order(2) // Executa após o DataInitializer
@@ -92,6 +100,16 @@ public class SampleDataGenerator implements CommandLineRunner {
         usuario.setDataNascimento(LocalDate.of(1980, 5, 15));
         usuario.setAtivo(true);
         usuario = usuarioRepository.save(usuario);
+
+        // Criar usuário profissional
+        Usuario usuario2 = new Usuario();
+        usuario2.setNome("Dr. João Silva 2");
+        usuario2.setEmail("joao.silva2@doctorplus.com");
+        usuario2.setSenha(passwordEncoder.encode("123456"));
+        usuario2.setTipo(TipoUsuario.PROFISSIONAL);
+        usuario2.setDataNascimento(LocalDate.of(1980, 5, 15));
+        usuario2.setAtivo(true);
+        usuario2 = usuarioRepository.save(usuario2);
 
         // Criar profissional
         Profissional profissional = new Profissional();

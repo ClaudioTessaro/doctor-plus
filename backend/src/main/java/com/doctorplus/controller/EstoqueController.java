@@ -17,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/estoque")
@@ -43,7 +42,7 @@ public class EstoqueController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar item por ID", description = "Retorna os dados de um item específico")
-    public ResponseEntity<EstoqueResponse> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<EstoqueResponse> buscarPorId(@PathVariable Long id) {
         EstoqueResponse response = estoqueService.buscarPorId(id);
         return ResponseEntity.ok(response);
     }
@@ -129,7 +128,7 @@ public class EstoqueController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Atualizar item", description = "Atualiza os dados de um item do estoque")
     public ResponseEntity<EstoqueResponse> atualizarItem(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @Valid @RequestBody EstoqueCreateRequest request) {
         EstoqueResponse response = estoqueService.atualizarItem(id, request);
         return ResponseEntity.ok(response);
@@ -139,7 +138,7 @@ public class EstoqueController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Ajustar quantidade", description = "Define uma nova quantidade para o item")
     public ResponseEntity<EstoqueResponse> ajustarQuantidade(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @RequestParam Integer quantidade) {
         EstoqueResponse response = estoqueService.ajustarQuantidade(id, quantidade);
         return ResponseEntity.ok(response);
@@ -149,7 +148,7 @@ public class EstoqueController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Adicionar quantidade", description = "Adiciona quantidade ao estoque do item")
     public ResponseEntity<EstoqueResponse> adicionarQuantidade(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @RequestParam Integer quantidade) {
         EstoqueResponse response = estoqueService.adicionarQuantidade(id, quantidade);
         return ResponseEntity.ok(response);
@@ -159,7 +158,7 @@ public class EstoqueController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Remover quantidade", description = "Remove quantidade do estoque do item")
     public ResponseEntity<EstoqueResponse> removerQuantidade(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @RequestParam Integer quantidade) {
         EstoqueResponse response = estoqueService.removerQuantidade(id, quantidade);
         return ResponseEntity.ok(response);
@@ -168,7 +167,7 @@ public class EstoqueController {
     @PatchMapping("/{id}/desativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar item", description = "Desativa um item do estoque")
-    public ResponseEntity<Void> desativarItem(@PathVariable UUID id) {
+    public ResponseEntity<Void> desativarItem(@PathVariable Long id) {
         estoqueService.desativarItem(id);
         return ResponseEntity.noContent().build();
     }
@@ -176,7 +175,7 @@ public class EstoqueController {
     @PatchMapping("/{id}/ativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ativar item", description = "Ativa um item do estoque")
-    public ResponseEntity<Void> ativarItem(@PathVariable UUID id) {
+    public ResponseEntity<Void> ativarItem(@PathVariable Long id) {
         estoqueService.ativarItem(id);
         return ResponseEntity.noContent().build();
     }

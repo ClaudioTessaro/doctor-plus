@@ -16,10 +16,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/historicos")
@@ -47,7 +54,7 @@ public class HistoricoController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar histórico por ID", description = "Retorna os dados de um histórico específico")
-    public ResponseEntity<HistoricoResponse> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<HistoricoResponse> buscarPorId(@PathVariable Long id) {
         HistoricoResponse response = historicoService.buscarPorId(id);
         return ResponseEntity.ok(response);
     }
@@ -79,7 +86,7 @@ public class HistoricoController {
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar históricos do paciente", description = "Retorna histórico médico completo de um paciente")
-    public ResponseEntity<List<HistoricoResponse>> listarPorPaciente(@PathVariable UUID pacienteId) {
+    public ResponseEntity<List<HistoricoResponse>> listarPorPaciente(@PathVariable Long pacienteId) {
         List<HistoricoResponse> response = historicoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(response);
     }
@@ -87,7 +94,7 @@ public class HistoricoController {
     @GetMapping("/profissional/{profissionalId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Listar históricos do profissional", description = "Retorna históricos criados por um profissional")
-    public ResponseEntity<List<HistoricoResponse>> listarPorProfissional(@PathVariable UUID profissionalId) {
+    public ResponseEntity<List<HistoricoResponse>> listarPorProfissional(@PathVariable Long profissionalId) {
         List<HistoricoResponse> response = historicoService.listarPorProfissional(profissionalId);
         return ResponseEntity.ok(response);
     }
@@ -109,7 +116,7 @@ public class HistoricoController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Atualizar histórico", description = "Atualiza os dados de um histórico")
     public ResponseEntity<HistoricoResponse> atualizarHistorico(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @Valid @RequestBody HistoricoCreateRequest request) {
         HistoricoResponse response = historicoService.atualizarHistorico(id, request);
         return ResponseEntity.ok(response);
@@ -118,7 +125,7 @@ public class HistoricoController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir histórico", description = "Remove um histórico do sistema")
-    public ResponseEntity<Void> excluirHistorico(@PathVariable UUID id) {
+    public ResponseEntity<Void> excluirHistorico(@PathVariable Long id) {
         historicoService.excluirHistorico(id);
         return ResponseEntity.noContent().build();
     }
