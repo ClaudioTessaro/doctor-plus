@@ -92,14 +92,34 @@ public class SecretarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<SecretarioResponse> listarTodos() {
-        List<Secretario> secretarios = secretarioRepository.findAllAtivos();
+    public List<SecretarioResponse> listarTodos(String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleSecretarioIds(userEmail);
+        
+        List<Secretario> secretarios;
+        if (accessibleIds == null) {
+            // Admin - pode ver todos
+            secretarios = secretarioRepository.findAllAtivos();
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            secretarios = secretarioRepository.findAccessibleSecretarios(accessibleIds);
+        }
+        
         return secretarioMapper.toResponseList(secretarios);
     }
 
     @Transactional(readOnly = true)
-    public List<SecretarioResponse> buscarPorTermo(String termo) {
-        List<Secretario> secretarios = secretarioRepository.buscarPorTermo(termo);
+    public List<SecretarioResponse> buscarPorTermo(String termo, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleSecretarioIds(userEmail);
+        
+        List<Secretario> secretarios;
+        if (accessibleIds == null) {
+            // Admin - pode buscar todos
+            secretarios = secretarioRepository.buscarPorTermo(termo);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            secretarios = secretarioRepository.buscarPorTermoAccessible(termo, accessibleIds);
+        }
+        
         return secretarioMapper.toResponseList(secretarios);
     }
 

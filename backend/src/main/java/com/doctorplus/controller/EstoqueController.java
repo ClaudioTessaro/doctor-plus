@@ -57,26 +57,27 @@ public class EstoqueController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar itens paginados", description = "Retorna lista paginada de itens do estoque")
     public ResponseEntity<PageResponse<EstoqueResponse>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "nome") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @CurrentUser UserPrincipal currentUser) {
         
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         
-        PageResponse<EstoqueResponse> response = estoqueService.listarTodos(pageable);
+        PageResponse<EstoqueResponse> response = estoqueService.listarTodos(pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/simples")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos os itens simples", description = "Retorna lista simples de todos os itens para seleção")
-    public ResponseEntity<List<EstoqueResponse>> listarTodosSimples() {
-        List<EstoqueResponse> response = estoqueService.listarTodosSimples();
+    public ResponseEntity<List<EstoqueResponse>> listarTodosSimples(@CurrentUser UserPrincipal currentUser) {
+        List<EstoqueResponse> response = estoqueService.listarTodosSimples(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -105,15 +106,16 @@ public class EstoqueController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar itens paginados", description = "Busca itens por nome, código ou categoria com paginação")
     public ResponseEntity<PageResponse<EstoqueResponse>> buscarPorTermo(
             @RequestParam String termo,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser UserPrincipal currentUser) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
-        PageResponse<EstoqueResponse> response = estoqueService.buscarPorTermo(termo, pageable);
+        PageResponse<EstoqueResponse> response = estoqueService.buscarPorTermo(termo, pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

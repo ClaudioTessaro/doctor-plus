@@ -68,8 +68,9 @@ public class ConsultaController {
     @Operation(summary = "Listar consultas por período", description = "Retorna consultas em um período específico")
     public ResponseEntity<List<ConsultaResponse>> listarPorPeriodo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
-        List<ConsultaResponse> response = consultaService.listarPorPeriodo(inicio, fim);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim,
+            @CurrentUser UserPrincipal currentUser) {
+        List<ConsultaResponse> response = consultaService.listarPorPeriodo(inicio, fim, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -88,8 +89,8 @@ public class ConsultaController {
     @GetMapping("/proximas")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Próximas consultas", description = "Retorna as próximas consultas agendadas")
-    public ResponseEntity<List<ConsultaResponse>> listarProximasConsultas() {
-        List<ConsultaResponse> response = consultaService.listarProximasConsultas();
+    public ResponseEntity<List<ConsultaResponse>> listarProximasConsultas(@CurrentUser UserPrincipal currentUser) {
+        List<ConsultaResponse> response = consultaService.listarProximasConsultas(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

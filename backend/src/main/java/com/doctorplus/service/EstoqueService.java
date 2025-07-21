@@ -66,7 +66,12 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<EstoqueResponse> listarTodos(Pageable pageable) {
+    public PageResponse<EstoqueResponse> listarTodos(Pageable pageable, String userEmail) {
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem gerenciar estoque.");
+        }
+        
         Page<Estoque> itensPage = estoqueRepository.findByAtivoTrue(pageable);
         List<EstoqueResponse> itens = estoqueMapper.toResponseList(itensPage.getContent());
         return new PageResponse<>(
@@ -108,13 +113,23 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstoqueResponse> listarTodosSimples() {
+    public List<EstoqueResponse> listarTodosSimples(String userEmail) {
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem gerenciar estoque.");
+        }
+        
         List<Estoque> itens = estoqueRepository.findByAtivoTrueOrderByNome();
         return estoqueMapper.toResponseList(itens);
     }
 
     @Transactional(readOnly = true)
-    public List<String> listarCategorias() {
+    public PageResponse<EstoqueResponse> buscarPorTermo(String termo, Pageable pageable, String userEmail) {
+        // Verificar se é admin
+        if (!securityService.isAdmin(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores podem gerenciar estoque.");
+        }
+        
         return estoqueRepository.findAllCategorias();
     }
 

@@ -50,7 +50,7 @@ public class ProfissionalService {
         List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
         
         List<Profissional> profissionais;
-        if (accessibleIds.isEmpty()) {
+        if (accessibleIds == null) {
             // Admin - pode ver todos
             profissionais = profissionalRepository.findAllAtivos();
         } else {

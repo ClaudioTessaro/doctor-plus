@@ -102,8 +102,18 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
-        List<Consulta> consultas = consultaRepository.findByDataHoraBetween(inicio, fim);
+    public List<ConsultaResponse> listarPorPeriodo(LocalDateTime inicio, LocalDateTime fim, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findByDataHoraBetween(inicio, fim);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findAccessibleByDataHoraBetween(inicio, fim, accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 
@@ -114,8 +124,18 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarProximasConsultas() {
-        List<Consulta> consultas = consultaRepository.findProximasConsultas(LocalDateTime.now());
+    public List<ConsultaResponse> listarProximasConsultas(String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findProximasConsultas(LocalDateTime.now());
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findProximasConsultasAccessible(LocalDateTime.now(), accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 
