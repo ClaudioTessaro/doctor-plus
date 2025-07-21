@@ -44,68 +44,35 @@ class ApiClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        let errorData: any = {};
+        let errorMessage = 'Ocorreu um erro inesperado';
+        let errorData: any = null;
+        
         try {
           errorData = await response.json();
+          console.log('Error response data:', errorData);
         } catch {
-          errorData = { 
-            message: `Erro de comunicação com o servidor (${response.status})`,
-            error: `Erro HTTP ${response.status}`,
-            status: response.status
-          };
+          // Se não conseguir fazer parse do JSON, usar mensagem padrão
+          errorMessage = `Erro de comunicação com o servidor (${response.status})`;
         }
-        console.error('API Error:', response.status, errorData);
         
-        // Sistema aprimorado de extração de mensagens
-        let errorMessage = 'Ocorreu um erro inesperado';
-        let errorTitle = 'Erro';
-        let errorDescription = '';
-        
-        if (errorData.message) {
+        // Extrair mensagem de erro do backend
+        if (errorData && errorData.message) {
           errorMessage = errorData.message;
-          errorDescription = errorData.path ? `Endpoint: ${errorData.path}` : '';
-        } else if (errorData.validationErrors) {
-          // Para erros de validação, mostrar todos os erros
-          const errors = Object.entries(errorData.validationErrors);
-          errorMessage = 'Dados inválidos fornecidos';
-          errorDescription = errors.map(([field, msg]) => `${field}: ${msg}`).join('\n');
-        } else if (errorData.error && errorData.error !== errorData.message) {
+        } else if (errorData && errorData.error) {
           errorMessage = errorData.error;
+        } else if (errorData && errorData.validationErrors) {
+          const errors = Object.entries(errorData.validationErrors) as [string, string][];
+          errorMessage = 'Dados inválidos fornecidos';
+          if (errors.length > 0) {
+            errorMessage = errors.map(([field, msg]) => `${field}: ${msg}`).join(', ');
+          }
         }
         
-        // Definir título baseado no status
-        switch (response.status) {
-          case 400:
-            errorTitle = 'Dados Inválidos';
-            break;
-          case 401:
-            errorTitle = 'Não Autorizado';
-            break;
-          case 403:
-            errorTitle = 'Acesso Negado';
-            break;
-          case 404:
-            errorTitle = 'Não Encontrado';
-            break;
-          case 409:
-            errorTitle = 'Conflito';
-            break;
-          case 500:
-            errorTitle = 'Erro do Servidor';
-            break;
-          default:
-            errorTitle = errorData.error || 'Erro';
-        }
-        
-        if (errorData.error && typeof errorData.error === 'string' && !errorTitle.includes('Erro')) {
-          errorTitle = errorData.error;
-        }
+        console.error('API Error:', response.status, errorMessage, errorData);
         
         const error = new Error(errorMessage);
         (error as any).status = response.status;
-        (error as any).title = errorTitle;
-        (error as any).description = errorDescription;
-        (error as any).validationErrors = errorData.validationErrors;
+        (error as any).data = errorData;
         (error as any).originalError = errorData;
         throw error;
       }

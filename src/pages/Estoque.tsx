@@ -95,12 +95,8 @@ export function Estoque() {
       
       toast.dismiss('create-item-loading');
       
-      const errorTitle = (error as any).title || 'Erro no Cadastro';
-      const errorDescription = (error as any).description || 'Verifique se o código não está duplicado.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro no Cadastro', {
+        description: error.message || 'Verifique se o código não está duplicado.',
       });
       throw error;
     }
@@ -180,12 +176,8 @@ export function Estoque() {
       
       toast.dismiss('adjust-quantity-loading');
       
-      const errorTitle = (error as any).title || 'Erro no Ajuste';
-      const errorDescription = (error as any).description || 'Verifique se a quantidade é válida.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro no Ajuste', {
+        description: error.message || 'Verifique se a quantidade é válida.',
       });
       throw error;
     }

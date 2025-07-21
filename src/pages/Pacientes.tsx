@@ -69,11 +69,8 @@ export function Pacientes() {
     } catch (error: any) {
       console.error('Error fetching pacientes:', error);
       
-      const errorTitle = (error as any).title || 'Erro ao Carregar Dados';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message || 'Não foi possível carregar a lista de pacientes.'}`,
-        duration: 6000,
+      toast.error('❌ Erro ao Carregar Dados', {
+        description: error.message || 'Não foi possível carregar a lista de pacientes.',
       });
     } finally {
       setLoading(false);
@@ -100,12 +97,8 @@ export function Pacientes() {
       
       toast.dismiss('create-patient-loading');
       
-      const errorTitle = (error as any).title || 'Erro no Cadastro';
-      const errorDescription = (error as any).description || 'Verifique os dados fornecidos.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro no Cadastro', {
+        description: error.message || 'Verifique os dados fornecidos.',
       });
       throw error;
     }
@@ -133,12 +126,8 @@ export function Pacientes() {
       
       toast.dismiss('update-patient-loading');
       
-      const errorTitle = (error as any).title || 'Erro na Atualização';
-      const errorDescription = (error as any).description || 'Verifique os dados fornecidos.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro na Atualização', {
+        description: error.message || 'Verifique os dados fornecidos.',
       });
       throw error;
     }
@@ -170,12 +159,8 @@ export function Pacientes() {
       
       toast.dismiss('delete-patient-loading');
       
-      const errorTitle = (error as any).title || 'Erro ao Remover';
-      const errorDescription = (error as any).description || 'O paciente pode ter consultas ou históricos vinculados.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro ao Remover', {
+        description: error.message || 'O paciente pode ter consultas ou históricos vinculados.',
       });
     } finally {
       setDeleting(false);
@@ -227,11 +212,8 @@ export function Pacientes() {
     } catch (error) {
       console.error('Error fetching patient details:', error);
       
-      const errorTitle = (error as any).title || 'Erro ao Carregar Detalhes';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${(error as any).message || 'Não foi possível carregar os detalhes do paciente.'}`,
-        duration: 6000,
+      toast.error('❌ Erro ao Carregar Detalhes', {
+        description: (error as any).message || 'Não foi possível carregar os detalhes do paciente.',
       });
     } finally {
       setLoadingDetails(false);

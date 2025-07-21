@@ -65,12 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       toast.dismiss('signup-loading');
       
-      const errorTitle = (error as any).title || 'Erro no Cadastro';
-      const errorDescription = (error as any).description || 'Verifique os dados fornecidos e tente novamente.';
+      console.error('Signup error details:', error);
       
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro no Cadastro', {
+        description: error.message || 'Verifique os dados fornecidos e tente novamente.',
       });
       throw error;
     }
@@ -101,12 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Login error:', error);
       toast.dismiss('signin-loading');
       
-      const errorTitle = (error as any).title || 'Falha na Autenticação';
-      const errorDescription = (error as any).description || 'Verifique seu email e senha.';
+      console.error('Login error details:', error);
       
-      toast.error(`🔒 ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('🔒 Falha na Autenticação', {
+        description: error.message || 'Verifique seu email e senha.',
       });
       throw error;
     }

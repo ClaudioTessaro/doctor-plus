@@ -252,12 +252,8 @@ export function Agenda() {
       
       toast.dismiss(`status-change-${consulta.id}`);
       
-      const errorTitle = (error as any).title || 'Erro ao Alterar Status';
-      const errorDescription = (error as any).description || 'Verifique se a consulta pode ter seu status alterado.';
-      
-      toast.error(`❌ ${errorTitle}`, {
-        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
-        duration: 8000,
+      toast.error('❌ Erro ao Alterar Status', {
+        description: error.message || 'Verifique se a consulta pode ter seu status alterado.',
       });
     }
   };
