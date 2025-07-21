@@ -156,7 +156,7 @@ public class SecurityService {
 
             // Admin pode acessar tudo
             if (usuario.get().getTipo() == TipoUsuario.ADMIN) {
-                return List.of(); // Lista vazia significa "todos"
+                return null; // null significa "todos"
             }
 
             // Profissional pode acessar pacientes vinculados
@@ -186,7 +186,7 @@ public class SecurityService {
 
             // Admin pode acessar tudo
             if (usuario.get().getTipo() == TipoUsuario.ADMIN) {
-                return List.of(); // Lista vazia significa "todos"
+                return null; // null significa "todos"
             }
 
             // Profissional pode acessar apenas a si mesmo
@@ -210,6 +210,69 @@ public class SecurityService {
         } catch (Exception e) {
             logger.error("Erro ao buscar profissionais acessíveis", e);
             return List.of();
+        }
+    }
+
+    /**
+     * Retorna lista de IDs de secretários que o usuário pode acessar
+     */
+    public List<Long> getAccessibleSecretarioIds(String email) {
+        try {
+            Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
+            if (usuario.isEmpty()) return List.of();
+
+            // Admin pode acessar tudo
+            if (usuario.get().getTipo() == TipoUsuario.ADMIN) {
+                return null; // null significa "todos"
+            }
+
+            // Profissional pode acessar secretários vinculados
+            if (usuario.get().getTipo() == TipoUsuario.PROFISSIONAL) {
+                Optional<Profissional> profissional = profissionalRepository.findByUsuarioId(usuario.get().getId());
+                if (profissional.isPresent()) {
+                    return secretarioProfissionalRepository.findByProfissionalId(profissional.get().getId())
+                        .stream()
+                        .map(sp -> sp.getSecretario().getId())
+                        .toList();
+                }
+            }
+
+            // Secretário pode acessar apenas a si mesmo
+            if (usuario.get().getTipo() == TipoUsuario.SECRETARIO) {
+                Optional<Secretario> secretario = secretarioRepository.findByUsuarioId(usuario.get().getId());
+                return secretario.map(s -> List.of(s.getId())).orElse(List.of());
+            }
+
+            return List.of();
+        } catch (Exception e) {
+            logger.error("Erro ao buscar secretários acessíveis", e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Verifica se o usuário é administrador
+     */
+    public boolean isAdmin(String email) {
+        try {
+            Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
+            return usuario.isPresent() && usuario.get().getTipo() == TipoUsuario.ADMIN;
+        } catch (Exception e) {
+            logger.error("Erro ao verificar se é admin", e);
+            return false;
+        }
+    }
+
+    /**
+     * Verifica se o usuário é profissional
+     */
+    public boolean isProfissional(String email) {
+        try {
+            Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
+            return usuario.isPresent() && usuario.get().getTipo() == TipoUsuario.PROFISSIONAL;
+        } catch (Exception e) {
+            logger.error("Erro ao verificar se é profissional", e);
+            return false;
         }
     }
 }

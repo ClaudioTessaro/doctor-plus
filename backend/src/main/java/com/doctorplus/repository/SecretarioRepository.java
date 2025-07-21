@@ -22,6 +22,12 @@ public interface SecretarioRepository extends JpaRepository<Secretario, Long> {
            "LOWER(s.usuario.email) LIKE LOWER(CONCAT('%', :termo, '%')))")
     List<Secretario> buscarPorTermo(@Param("termo") String termo);
 
+    @Query("SELECT s FROM Secretario s WHERE s.usuario.ativo = true AND " +
+           "s.id IN :secretarioIds AND " +
+           "(LOWER(s.usuario.nome) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
+           "LOWER(s.usuario.email) LIKE LOWER(CONCAT('%', :termo, '%')))")
+    List<Secretario> buscarPorTermoAccessible(@Param("termo") String termo, 
+                                             @Param("secretarioIds") List<Long> secretarioIds);
     @Query("SELECT COUNT(s) FROM Secretario s WHERE s.usuario.ativo = true")
     Long countTotalSecretarios();
 

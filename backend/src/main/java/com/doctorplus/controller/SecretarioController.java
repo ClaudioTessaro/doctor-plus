@@ -3,6 +3,8 @@ package com.doctorplus.controller;
 import com.doctorplus.dto.request.SecretarioCreateRequest;
 import com.doctorplus.dto.request.VinculoProfissionalRequest;
 import com.doctorplus.dto.response.SecretarioResponse;
+import com.doctorplus.security.CurrentUser;
+import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.SecretarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -47,16 +49,17 @@ public class SecretarioController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar todos os secretários", description = "Retorna lista de todos os secretários ativos")
-    public ResponseEntity<List<SecretarioResponse>> listarTodos() {
-        List<SecretarioResponse> response = secretarioService.listarTodos();
+    public ResponseEntity<List<SecretarioResponse>> listarTodos(@CurrentUser UserPrincipal currentUser) {
+        List<SecretarioResponse> response = secretarioService.listarTodos(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar secretários", description = "Busca secretários por nome ou email")
-    public ResponseEntity<List<SecretarioResponse>> buscarPorTermo(@RequestParam String termo) {
-        List<SecretarioResponse> response = secretarioService.buscarPorTermo(termo);
+    public ResponseEntity<List<SecretarioResponse>> buscarPorTermo(@RequestParam String termo,
+                                                                  @CurrentUser UserPrincipal currentUser) {
+        List<SecretarioResponse> response = secretarioService.buscarPorTermo(termo, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

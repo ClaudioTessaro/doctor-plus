@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface HistoricoRepository extends JpaRepository<Historico, Long> {
 
-    List<Historico> findAllByOrderByDataConsultaDesc();
+    List<Historico> findAllByPaciente_EmailOrderByDataConsultaDesc(String email);
 
     List<Historico> findByPacienteIdOrderByDataConsultaDesc(Long pacienteId);
 

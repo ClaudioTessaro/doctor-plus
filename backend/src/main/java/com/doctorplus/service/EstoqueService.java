@@ -8,6 +8,7 @@ import com.doctorplus.exception.BusinessException;
 import com.doctorplus.exception.ResourceNotFoundException;
 import com.doctorplus.mapper.EstoqueMapper;
 import com.doctorplus.repository.EstoqueRepository;
+import com.doctorplus.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,14 @@ public class EstoqueService {
     private final EstoqueRepository estoqueRepository;
     private final EstoqueMapper estoqueMapper;
     private final MessageService messageService;
+    private final SecurityService securityService;
 
     @Autowired
-    public EstoqueService(EstoqueRepository estoqueRepository, EstoqueMapper estoqueMapper, MessageService messageService) {
+    public EstoqueService(EstoqueRepository estoqueRepository, EstoqueMapper estoqueMapper, MessageService messageService, SecurityService securityService) {
         this.estoqueRepository = estoqueRepository;
         this.estoqueMapper = estoqueMapper;
         this.messageService = messageService;
+        this.securityService = securityService;
     }
 
     public EstoqueResponse criarItem(EstoqueCreateRequest request) {
@@ -64,7 +67,12 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<EstoqueResponse> listarTodos(Pageable pageable) {
+    public PageResponse<EstoqueResponse> listarTodos(Pageable pageable, String userEmail) {
+        // Verificar se é admin ou profissional
+        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        }
+        
         Page<Estoque> itensPage = estoqueRepository.findByAtivoTrue(pageable);
         List<EstoqueResponse> itens = estoqueMapper.toResponseList(itensPage.getContent());
         return new PageResponse<>(
@@ -106,14 +114,41 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstoqueResponse> listarTodosSimples() {
+    public List<EstoqueResponse> listarTodosSimples(String userEmail) {
+        // Verificar se é admin ou profissional
+        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        }
+        
         List<Estoque> itens = estoqueRepository.findByAtivoTrueOrderByNome();
         return estoqueMapper.toResponseList(itens);
     }
 
     @Transactional(readOnly = true)
-    public List<String> listarCategorias() {
+    public List<String> listarCategorias(String userEmail) {
+        // Verificar se é admin ou profissional
+        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        }
+        
         return estoqueRepository.findAllCategorias();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<EstoqueResponse> buscarPorTermo(String termo, Pageable pageable, String userEmail) {
+        // Verificar se é admin ou profissional
+        if (!securityService.isAdmin(userEmail) && !securityService.isProfissional(userEmail)) {
+            throw new BusinessException("Acesso negado. Apenas administradores e profissionais podem acessar estoque.");
+        }
+        
+        Page<Estoque> itensPage = estoqueRepository.buscarPorTermo(termo, pageable);
+        List<EstoqueResponse> itens = estoqueMapper.toResponseList(itensPage.getContent());
+        return new PageResponse<>(
+            itens,
+            itensPage.getNumber(),
+            itensPage.getSize(),
+            itensPage.getTotalElements()
+        );
     }
 
     public EstoqueResponse atualizarItem(Long id, EstoqueCreateRequest request) {

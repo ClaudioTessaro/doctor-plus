@@ -16,15 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -66,28 +58,30 @@ public class HistoricoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "dataConsulta") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @CurrentUser UserPrincipal currentUser) {
         
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         
-        PageResponse<HistoricoResponse> response = historicoService.listarTodos(pageable);
+        PageResponse<HistoricoResponse> response = historicoService.listarTodos(pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/simples")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar todos os históricos simples", description = "Retorna lista simples de todos os históricos")
-    public ResponseEntity<List<HistoricoResponse>> listarTodosSimples() {
-        List<HistoricoResponse> response = historicoService.listarTodosSimples();
+    public ResponseEntity<List<HistoricoResponse>> listarTodosSimples(@CurrentUser UserPrincipal currentUser) {
+        List<HistoricoResponse> response = historicoService.listarTodosSimples(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar históricos do paciente", description = "Retorna histórico médico completo de um paciente")
-    public ResponseEntity<List<HistoricoResponse>> listarPorPaciente(@PathVariable Long pacienteId) {
-        List<HistoricoResponse> response = historicoService.listarPorPaciente(pacienteId);
+    public ResponseEntity<List<HistoricoResponse>> listarPorPaciente(@PathVariable Long pacienteId,
+                                                                    @CurrentUser UserPrincipal currentUser) {
+        List<HistoricoResponse> response = historicoService.listarPorPaciente(pacienteId, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -105,10 +99,11 @@ public class HistoricoController {
     public ResponseEntity<PageResponse<HistoricoResponse>> buscarPorTermo(
             @RequestParam String termo,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser UserPrincipal currentUser) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataConsulta"));
-        PageResponse<HistoricoResponse> response = historicoService.buscarPorTermo(termo, pageable);
+        PageResponse<HistoricoResponse> response = historicoService.buscarPorTermo(termo, pageable, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

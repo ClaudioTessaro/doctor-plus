@@ -34,20 +34,22 @@ public class ConsultaService {
     private final ConsultaMapper consultaMapper;
     private final EmailService emailService;
     private final MessageService messageService;
+    private final SecurityService securityService;
 
     @Autowired
     public ConsultaService(ConsultaRepository consultaRepository,
-                          PacienteRepository pacienteRepository,
-                          ProfissionalRepository profissionalRepository,
-                          ConsultaMapper consultaMapper,
-                          EmailService emailService,
-                          MessageService messageService) {
+                           PacienteRepository pacienteRepository,
+                           ProfissionalRepository profissionalRepository,
+                           ConsultaMapper consultaMapper,
+                           EmailService emailService,
+                           MessageService messageService, SecurityService securityService) {
         this.consultaRepository = consultaRepository;
         this.pacienteRepository = pacienteRepository;
         this.profissionalRepository = profissionalRepository;
         this.consultaMapper = consultaMapper;
         this.emailService = emailService;
         this.messageService = messageService;
+        this.securityService = securityService;
     }
 
     public ConsultaResponse agendarConsulta(ConsultaCreateRequest request) {
@@ -89,8 +91,18 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorPaciente(Long pacienteId) {
-        List<Consulta> consultas = consultaRepository.findByPacienteIdOrderByDataHoraDesc(pacienteId);
+    public List<ConsultaResponse> listarPorPaciente(Long pacienteId, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findByPacienteIdOrderByDataHoraDesc(pacienteId);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findAccessibleByPacienteId(pacienteId, accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 
@@ -101,8 +113,18 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
-        List<Consulta> consultas = consultaRepository.findByDataHoraBetween(inicio, fim);
+    public List<ConsultaResponse> listarPorPeriodo(LocalDateTime inicio, LocalDateTime fim, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findByDataHoraBetween(inicio, fim);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findAccessibleByDataHoraBetween(inicio, fim, accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 
@@ -113,8 +135,18 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarProximasConsultas() {
-        List<Consulta> consultas = consultaRepository.findProximasConsultas(LocalDateTime.now());
+    public List<ConsultaResponse> listarProximasConsultas(String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findProximasConsultas(LocalDateTime.now());
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findProximasConsultasAccessible(LocalDateTime.now(), accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 

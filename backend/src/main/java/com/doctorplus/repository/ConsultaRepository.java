@@ -38,6 +38,11 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
            "ORDER BY c.dataHora LIMIT 5")
     List<Consulta> findProximasConsultas(@Param("agora") LocalDateTime agora);
 
+    @Query("SELECT c FROM Consulta c WHERE c.dataHora >= :agora AND c.status = 'AGENDADA' " +
+           "AND c.profissional.id IN :profissionalIds " +
+           "ORDER BY c.dataHora LIMIT 5")
+    List<Consulta> findProximasConsultasAccessible(@Param("agora") LocalDateTime agora,
+                                                   @Param("profissionalIds") List<Long> profissionalIds);
     Long countByStatus(StatusConsulta status);
 
     @Query("SELECT COUNT(c) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim")

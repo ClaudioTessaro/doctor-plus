@@ -102,7 +102,7 @@ public class PacienteService {
         List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
         
         Page<Paciente> pacientesPage;
-        if (accessibleIds.isEmpty()) {
+        if (accessibleIds == null) {
             // Admin - pode ver todos
             pacientesPage = pacienteRepository.findAll(pageable);
         } else {
@@ -130,7 +130,7 @@ public class PacienteService {
         List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
         
         Page<Paciente> pacientesPage;
-        if (accessibleIds.isEmpty()) {
+        if (accessibleIds == null) {
             // Admin - pode buscar todos
             pacientesPage = pacienteRepository.buscarPorTermo(termo, pageable);
         } else {
@@ -152,7 +152,7 @@ public class PacienteService {
         List<Long> accessibleIds = securityService.getAccessiblePacienteIds(userEmail);
         
         List<Paciente> pacientes;
-        if (accessibleIds.isEmpty()) {
+        if (accessibleIds == null) {
             // Admin - pode ver todos
             pacientes = pacienteRepository.findAll();
         } else {

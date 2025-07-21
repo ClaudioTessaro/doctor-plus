@@ -3,6 +3,8 @@ package com.doctorplus.controller;
 import com.doctorplus.domain.enums.StatusConsulta;
 import com.doctorplus.dto.request.ConsultaCreateRequest;
 import com.doctorplus.dto.response.ConsultaResponse;
+import com.doctorplus.security.CurrentUser;
+import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.ConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -49,8 +51,9 @@ public class ConsultaController {
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar consultas do paciente", description = "Retorna todas as consultas de um paciente")
-    public ResponseEntity<List<ConsultaResponse>> listarPorPaciente(@PathVariable Long pacienteId) {
-        List<ConsultaResponse> response = consultaService.listarPorPaciente(pacienteId);
+    public ResponseEntity<List<ConsultaResponse>> listarPorPaciente(@PathVariable Long pacienteId,
+                                                                   @CurrentUser UserPrincipal currentUser) {
+        List<ConsultaResponse> response = consultaService.listarPorPaciente(pacienteId, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -67,8 +70,9 @@ public class ConsultaController {
     @Operation(summary = "Listar consultas por período", description = "Retorna consultas em um período específico")
     public ResponseEntity<List<ConsultaResponse>> listarPorPeriodo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
-        List<ConsultaResponse> response = consultaService.listarPorPeriodo(inicio, fim);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim,
+            @CurrentUser UserPrincipal currentUser) {
+        List<ConsultaResponse> response = consultaService.listarPorPeriodo(inicio, fim, currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -87,8 +91,8 @@ public class ConsultaController {
     @GetMapping("/proximas")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Próximas consultas", description = "Retorna as próximas consultas agendadas")
-    public ResponseEntity<List<ConsultaResponse>> listarProximasConsultas() {
-        List<ConsultaResponse> response = consultaService.listarProximasConsultas();
+    public ResponseEntity<List<ConsultaResponse>> listarProximasConsultas(@CurrentUser UserPrincipal currentUser) {
+        List<ConsultaResponse> response = consultaService.listarProximasConsultas(currentUser.getEmail());
         return ResponseEntity.ok(response);
     }
 

@@ -32,16 +32,18 @@ public class HistoricoService {
     private final PacienteRepository pacienteRepository;
     private final ProfissionalRepository profissionalRepository;
     private final HistoricoMapper historicoMapper;
+    private final SecurityService securityService;
 
     @Autowired
     public HistoricoService(HistoricoRepository historicoRepository,
-                           PacienteRepository pacienteRepository,
-                           ProfissionalRepository profissionalRepository,
-                           HistoricoMapper historicoMapper) {
+                            PacienteRepository pacienteRepository,
+                            ProfissionalRepository profissionalRepository,
+                            HistoricoMapper historicoMapper, SecurityService securityService) {
         this.historicoRepository = historicoRepository;
         this.pacienteRepository = pacienteRepository;
         this.profissionalRepository = profissionalRepository;
         this.historicoMapper = historicoMapper;
+        this.securityService = securityService;
     }
 
     public HistoricoResponse criarHistorico(HistoricoCreateRequest request, Long usuarioId) {
@@ -73,8 +75,18 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<HistoricoResponse> listarTodos(Pageable pageable) {
-        Page<Historico> historicosPage = historicoRepository.findAll(pageable);
+    public PageResponse<HistoricoResponse> listarTodos(Pageable pageable, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        Page<Historico> historicosPage;
+        if (accessibleIds == null) {
+            // Admin - pode ver todos
+            historicosPage = historicoRepository.findAll(pageable);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            historicosPage = historicoRepository.findAccessibleHistoricos(accessibleIds, pageable);
+        }
+        
         List<HistoricoResponse> historicos = historicoMapper.toResponseList(historicosPage.getContent());
         return new PageResponse<>(
             historicos,
@@ -97,8 +109,18 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<HistoricoResponse> buscarPorTermo(String termo, Pageable pageable) {
-        Page<Historico> historicosPage = historicoRepository.buscarPorTermo(termo, pageable);
+    public PageResponse<HistoricoResponse> buscarPorTermo(String termo, Pageable pageable, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        Page<Historico> historicosPage;
+        if (accessibleIds == null) {
+            // Admin - pode buscar todos
+            historicosPage = historicoRepository.buscarPorTermo(termo, pageable);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            historicosPage = historicoRepository.buscarPorTermoAccessible(termo, accessibleIds, pageable);
+        }
+        
         List<HistoricoResponse> historicos = historicoMapper.toResponseList(historicosPage.getContent());
         return new PageResponse<>(
             historicos,
@@ -109,8 +131,18 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public List<HistoricoResponse> listarTodosSimples() {
-        List<Historico> historicos = historicoRepository.findAllByOrderByDataConsultaDesc();
+    public List<HistoricoResponse> listarPorPaciente(Long pacienteId, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Historico> historicos;
+        if (accessibleIds == null) {
+            // Admin - pode ver todos
+            historicos = historicoRepository.findByPacienteIdOrderByDataConsultaDesc(pacienteId);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            historicos = historicoRepository.findAccessibleHistoricosSimples(accessibleIds);
+        }
+        
         return historicoMapper.toResponseList(historicos);
     }
 
@@ -137,5 +169,11 @@ public class HistoricoService {
     @Transactional(readOnly = true)
     public Long contarTotalHistoricos() {
         return historicoRepository.countTotalHistoricos();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoResponse> listarTodosSimples(String email) {
+        List<Historico> historicos = historicoRepository.findAllByPaciente_EmailOrderByDataConsultaDesc(email);
+        return historicoMapper.toResponseList(historicos);
     }
 }
