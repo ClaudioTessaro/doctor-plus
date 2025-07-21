@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UsuarioMapper.class, SecretarioProfissionalMapper.class})
+@Mapper(componentModel = "spring", uses = {UsuarioMapper.class})
 public interface SecretarioMapper {
 
     SecretarioResponse toResponse(Secretario secretario);
