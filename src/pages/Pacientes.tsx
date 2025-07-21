@@ -38,6 +38,7 @@ export function Pacientes() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pacienteToDelete, setPacienteToDelete] = useState<PacienteResponse | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal de visualização
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -45,6 +46,15 @@ export function Pacientes() {
   const [pacienteConsultas, setPacienteConsultas] = useState<ConsultaResponse[]>([]);
   const [pacienteHistoricos, setPacienteHistoricos] = useState<HistoricoResponse[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchPacientes();
@@ -54,14 +64,14 @@ export function Pacientes() {
     // Reset page when search term changes
     setCurrentPage(0);
     fetchPacientes();
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   const fetchPacientes = async () => {
     try {
       setLoading(true);
       let data;
-      if (searchTerm.trim()) {
-        data = await apiClient.searchPacientesPaginated(searchTerm, currentPage, pageSize);
+      if (debouncedSearchTerm.trim()) {
+        data = await apiClient.searchPacientesPaginated(debouncedSearchTerm, currentPage, pageSize);
       } else {
         data = await apiClient.getPacientes(currentPage, pageSize);
       }

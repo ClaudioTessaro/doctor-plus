@@ -27,10 +27,12 @@ export function PacienteAutocomplete({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPaciente, setSelectedPaciente] = useState<PacienteResponse | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
   // Encontrar paciente selecionado quando value muda
   useEffect(() => {
@@ -43,6 +45,33 @@ export function PacienteAutocomplete({
       setSearchTerm('');
     }
   }, [value, pacientes]);
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    // Limpar timeout anterior
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // Configurar novo timeout de 4 segundos
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    // Cleanup
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Executar busca quando debouncedSearchTerm muda
+  useEffect(() => {
+    if (debouncedSearchTerm && onSearch) {
+      onSearch(debouncedSearchTerm);
+    }
+  }, [debouncedSearchTerm, onSearch]);
 
   // Filtrar pacientes baseado no termo de busca
   const filteredPacientes = pacientes.filter(paciente =>
@@ -124,11 +153,6 @@ export function PacienteAutocomplete({
       setSelectedPaciente(null);
       onChange('');
     }
-    
-    // Chamar função de busca se fornecida
-    if (onSearch) {
-      onSearch(term);
-    }
   };
 
   const handleSelectPaciente = (paciente: PacienteResponse) => {
@@ -143,6 +167,7 @@ export function PacienteAutocomplete({
   const handleClear = () => {
     setSelectedPaciente(null);
     setSearchTerm('');
+    setDebouncedSearchTerm('');
     setIsOpen(false);
     setHighlightedIndex(-1);
     onChange('');

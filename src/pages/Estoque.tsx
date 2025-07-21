@@ -35,6 +35,7 @@ export function Estoque() {
   const [pageSize, setPageSize] = useState(20);
   const [filterCategoria, setFilterCategoria] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -45,6 +46,15 @@ export function Estoque() {
   const [itemToDelete, setItemToDelete] = useState<EstoqueResponse | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchEstoque();
   }, [currentPage, pageSize]);
@@ -53,14 +63,14 @@ export function Estoque() {
     // Reset page when search term changes
     setCurrentPage(0);
     fetchEstoque();
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   const fetchEstoque = async () => {
     try {
       setLoading(true);
       let data;
-      if (searchTerm.trim()) {
-        data = await apiClient.searchEstoquePaginated(searchTerm, currentPage, pageSize);
+      if (debouncedSearchTerm.trim()) {
+        data = await apiClient.searchEstoquePaginated(debouncedSearchTerm, currentPage, pageSize);
       } else {
         data = await apiClient.getEstoque(currentPage, pageSize);
       }
