@@ -166,6 +166,22 @@ class ApiClient {
     return this.request<ProfissionalResponse[]>('/profissionais');
   }
 
+  async getProfissional(id: string) {
+    return this.request<ProfissionalResponse>(`/profissionais/${id}`);
+  }
+
+  async searchProfissionais(termo: string) {
+    return this.request<ProfissionalResponse[]>(`/profissionais/buscar?termo=${encodeURIComponent(termo)}`);
+  }
+
+  async getProfissionaisByEspecialidade(especialidade: string) {
+    return this.request<ProfissionalResponse[]>(`/profissionais/especialidade/${especialidade}`);
+  }
+
+  async getEspecialidades() {
+    return this.request<string[]>('/profissionais/especialidades');
+  }
+
   // Estoque endpoints
   async getEstoque() {
     return this.request<EstoqueResponse[]>('/estoque');
@@ -209,11 +225,6 @@ class ApiClient {
   // Profissionais endpoints
   async getProfissionais() {
     return this.request<ProfissionalResponse[]>('/profissionais');
-  }
-
-  // Secretários endpoints
-  async getSecretarios() {
-    return this.request<SecretarioResponse[]>('/secretarios');
   }
 }
 

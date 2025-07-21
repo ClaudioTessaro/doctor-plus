@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, User, Calendar, Clock, FileText, DollarSign, Loader2 } from 'lucide-react';
 import { ConsultaResponse, PacienteResponse, ProfissionalResponse } from '../../lib/api';
+import { PacienteAutocomplete } from '../Pacientes/PacienteAutocomplete';
 
 const agendamentoSchema = z.object({
   pacienteId: z.string().min(1, 'Paciente é obrigatório'),
@@ -44,6 +45,7 @@ export function AgendamentoModal({
     reset,
     setValue,
     watch,
+    clearErrors,
   } = useForm<AgendamentoFormData>({
     resolver: zodResolver(agendamentoSchema),
     defaultValues: {
@@ -53,6 +55,7 @@ export function AgendamentoModal({
   });
 
   const watchedProfissional = watch('profissionalId');
+  const watchedPaciente = watch('pacienteId');
 
   useEffect(() => {
     if (isOpen) {
@@ -98,6 +101,13 @@ export function AgendamentoModal({
     return now.toISOString().slice(0, 16);
   };
 
+  const handlePacienteChange = (pacienteId: string, paciente?: PacienteResponse) => {
+    setValue('pacienteId', pacienteId);
+    if (pacienteId) {
+      clearErrors('pacienteId');
+    }
+  };
+
   const selectedProfissional = profissionais.find(p => p.id === watchedProfissional);
 
   if (!isOpen) return null;
@@ -124,23 +134,14 @@ export function AgendamentoModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Paciente *
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <select
-                  {...register('pacienteId')}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Selecione um paciente</option>
-                  {pacientes.map((paciente) => (
-                    <option key={paciente.id} value={paciente.id}>
-                      {paciente.nome} - {paciente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {errors.pacienteId && (
-                <p className="mt-1 text-sm text-red-600">{errors.pacienteId.message}</p>
-              )}
+              <PacienteAutocomplete
+                value={watchedPaciente}
+                onChange={handlePacienteChange}
+                pacientes={pacientes}
+                placeholder="Buscar paciente por nome, CPF ou email..."
+                error={errors.pacienteId?.message}
+                required
+              />
             </div>
 
             <div>
