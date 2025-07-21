@@ -225,6 +225,13 @@ class ApiClient {
     });
   }
 
+  async createHistorico(data: HistoricoCreateRequest) {
+    return this.request<HistoricoResponse>('/historicos', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async updateHistorico(id: string, data: HistoricoCreateRequest) {
     return this.request<HistoricoResponse>(`/historicos/${id}`, {
       method: 'PUT',
