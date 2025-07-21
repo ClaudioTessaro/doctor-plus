@@ -85,7 +85,7 @@ public class SecretarioService {
     }
 
     @Transactional(readOnly = true)
-    public SecretarioResponse buscarPorId(UUID id) {
+    public SecretarioResponse buscarPorId(Long id) {
         Secretario secretario = secretarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Secretário não encontrado"));
         return secretarioMapper.toResponse(secretario);
@@ -123,7 +123,7 @@ public class SecretarioService {
         return secretarioMapper.toResponseList(secretarios);
     }
 
-    public SecretarioResponse atualizarSecretario(UUID id, SecretarioCreateRequest request) {
+    public SecretarioResponse atualizarSecretario(Long id, SecretarioCreateRequest request) {
         Secretario secretario = secretarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Secretário não encontrado"));
 
@@ -149,7 +149,7 @@ public class SecretarioService {
         return secretarioMapper.toResponse(secretario);
     }
 
-    public SecretarioResponse vincularProfissional(UUID secretarioId, UUID profissionalId) {
+    public SecretarioResponse vincularProfissional(Long secretarioId, Long profissionalId) {
         Secretario secretario = secretarioRepository.findById(secretarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Secretário não encontrado"));
 
@@ -172,7 +172,7 @@ public class SecretarioService {
         return secretarioMapper.toResponse(secretario);
     }
 
-    public void desvincularProfissional(UUID secretarioId, UUID profissionalId) {
+    public void desvincularProfissional(Long secretarioId, Long profissionalId) {
         SecretarioProfissional vinculo = secretarioProfissionalRepository
                 .findBySecretarioIdAndProfissionalId(secretarioId, profissionalId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vinculação não encontrada"));
@@ -182,7 +182,7 @@ public class SecretarioService {
         logger.info("Profissional {} desvinculado do secretário {}", profissionalId, secretarioId);
     }
 
-    public void ativarSecretario(UUID id) {
+    public void ativarSecretario(Long id) {
         Secretario secretario = secretarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Secretário não encontrado"));
 
@@ -192,7 +192,7 @@ public class SecretarioService {
         logger.info("Secretário ativado: {}", id);
     }
 
-    public void desativarSecretario(UUID id) {
+    public void desativarSecretario(Long id) {
         Secretario secretario = secretarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Secretário não encontrado"));
 

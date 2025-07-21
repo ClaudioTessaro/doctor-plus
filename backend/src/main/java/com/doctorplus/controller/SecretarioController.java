@@ -14,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/secretarios")
@@ -40,7 +39,7 @@ public class SecretarioController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar secretário por ID", description = "Retorna os dados de um secretário específico")
-    public ResponseEntity<SecretarioResponse> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<SecretarioResponse> buscarPorId(@PathVariable Long id) {
         SecretarioResponse response = secretarioService.buscarPorId(id);
         return ResponseEntity.ok(response);
     }
@@ -66,7 +65,7 @@ public class SecretarioController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Atualizar secretário", description = "Atualiza os dados de um secretário")
     public ResponseEntity<SecretarioResponse> atualizarSecretario(
-            @PathVariable UUID id,
+            @PathVariable Long id,
             @Valid @RequestBody SecretarioCreateRequest request) {
         SecretarioResponse response = secretarioService.atualizarSecretario(id, request);
         return ResponseEntity.ok(response);
@@ -76,8 +75,8 @@ public class SecretarioController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Vincular profissional", description = "Vincula um profissional ao secretário")
     public ResponseEntity<SecretarioResponse> vincularProfissional(
-            @PathVariable UUID secretarioId,
-            @PathVariable UUID profissionalId) {
+            @PathVariable Long secretarioId,
+            @PathVariable Long profissionalId) {
         SecretarioResponse response = secretarioService.vincularProfissional(secretarioId, profissionalId);
         return ResponseEntity.ok(response);
     }
@@ -86,8 +85,8 @@ public class SecretarioController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
     @Operation(summary = "Desvincular profissional", description = "Remove vinculação entre secretário e profissional")
     public ResponseEntity<Void> desvincularProfissional(
-            @PathVariable UUID secretarioId,
-            @PathVariable UUID profissionalId) {
+            @PathVariable Long secretarioId,
+            @PathVariable Long profissionalId) {
         secretarioService.desvincularProfissional(secretarioId, profissionalId);
         return ResponseEntity.noContent().build();
     }
@@ -95,7 +94,7 @@ public class SecretarioController {
     @PatchMapping("/{id}/ativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ativar secretário", description = "Ativa um secretário no sistema")
-    public ResponseEntity<Void> ativarSecretario(@PathVariable UUID id) {
+    public ResponseEntity<Void> ativarSecretario(@PathVariable Long id) {
         secretarioService.ativarSecretario(id);
         return ResponseEntity.noContent().build();
     }
@@ -103,7 +102,7 @@ public class SecretarioController {
     @PatchMapping("/{id}/desativar")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desativar secretário", description = "Desativa um secretário do sistema")
-    public ResponseEntity<Void> desativarSecretario(@PathVariable UUID id) {
+    public ResponseEntity<Void> desativarSecretario(@PathVariable Long id) {
         secretarioService.desativarSecretario(id);
         return ResponseEntity.noContent().build();
     }

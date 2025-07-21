@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -83,20 +82,30 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public ConsultaResponse buscarPorId(UUID id) {
+    public ConsultaResponse buscarPorId(Long id) {
         Consulta consulta = consultaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
         return consultaMapper.toResponse(consulta);
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorPaciente(UUID pacienteId) {
-        List<Consulta> consultas = consultaRepository.findByPacienteIdOrderByDataHoraDesc(pacienteId);
+    public List<ConsultaResponse> listarPorPaciente(Long pacienteId, String userEmail) {
+        List<Long> accessibleIds = securityService.getAccessibleProfissionalIds(userEmail);
+        
+        List<Consulta> consultas;
+        if (accessibleIds == null) {
+            // Admin - pode ver todas
+            consultas = consultaRepository.findByPacienteIdOrderByDataHoraDesc(pacienteId);
+        } else {
+            // Profissional/Secretário - apenas vinculados
+            consultas = consultaRepository.findAccessibleByPacienteId(pacienteId, accessibleIds);
+        }
+        
         return consultaMapper.toResponseList(consultas);
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorProfissional(UUID profissionalId) {
+    public List<ConsultaResponse> listarPorProfissional(Long profissionalId) {
         List<Consulta> consultas = consultaRepository.findByProfissionalIdOrderByDataHoraDesc(profissionalId);
         return consultaMapper.toResponseList(consultas);
     }
@@ -118,7 +127,7 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ConsultaResponse> listarPorProfissionalEPeriodo(UUID profissionalId, LocalDateTime inicio, LocalDateTime fim) {
+    public List<ConsultaResponse> listarPorProfissionalEPeriodo(Long profissionalId, LocalDateTime inicio, LocalDateTime fim) {
         List<Consulta> consultas = consultaRepository.findByProfissionalIdAndDataHoraBetween(profissionalId, inicio, fim);
         return consultaMapper.toResponseList(consultas);
     }
@@ -139,7 +148,7 @@ public class ConsultaService {
         return consultaMapper.toResponseList(consultas);
     }
 
-    public ConsultaResponse atualizarConsulta(UUID id, ConsultaCreateRequest request) {
+    public ConsultaResponse atualizarConsulta(Long id, ConsultaCreateRequest request) {
         Consulta consulta = consultaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
 
@@ -161,7 +170,7 @@ public class ConsultaService {
         return consultaMapper.toResponse(consulta);
     }
 
-    public ConsultaResponse alterarStatus(UUID id, StatusConsulta novoStatus) {
+    public ConsultaResponse alterarStatus(Long id, StatusConsulta novoStatus) {
         Consulta consulta = consultaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageService.getMessage("consulta.not.found")));
 
@@ -182,15 +191,15 @@ public class ConsultaService {
         return consultaMapper.toResponse(consulta);
     }
 
-    public void cancelarConsulta(UUID id) {
+    public void cancelarConsulta(Long id) {
         alterarStatus(id, StatusConsulta.CANCELADA);
     }
 
-    public void confirmarConsulta(UUID id) {
+    public void confirmarConsulta(Long id) {
         alterarStatus(id, StatusConsulta.CONFIRMADA);
     }
 
-    public void marcarComoRealizada(UUID id) {
+    public void marcarComoRealizada(Long id) {
         alterarStatus(id, StatusConsulta.REALIZADA);
     }
 
@@ -204,11 +213,11 @@ public class ConsultaService {
         return consultaRepository.count();
     }
 
-    private void validarDisponibilidade(UUID profissionalId, LocalDateTime dataHora, Integer duracao) {
+    private void validarDisponibilidade(Long profissionalId, LocalDateTime dataHora, Integer duracao) {
         validarDisponibilidade(profissionalId, dataHora, duracao, null);
     }
 
-    private void validarDisponibilidade(UUID profissionalId, LocalDateTime dataHora, Integer duracao, UUID consultaExcluida) {
+    private void validarDisponibilidade(Long profissionalId, LocalDateTime dataHora, Integer duracao, Long consultaExcluida) {
         LocalDateTime inicio = dataHora;
         LocalDateTime fim = dataHora.plusMinutes(duracao);
 
