@@ -49,34 +49,62 @@ class ApiClient {
           errorData = await response.json();
         } catch {
           errorData = { 
-            message: `Erro HTTP ${response.status}`,
-            error: `Erro ${response.status}`,
+            message: `Erro de comunicação com o servidor (${response.status})`,
+            error: `Erro HTTP ${response.status}`,
             status: response.status
           };
         }
         console.error('API Error:', response.status, errorData);
         
-        // Extrair mensagem de erro do backend com prioridade
-        let errorMessage = `Erro HTTP ${response.status}`;
+        // Sistema aprimorado de extração de mensagens
+        let errorMessage = 'Ocorreu um erro inesperado';
         let errorTitle = 'Erro';
+        let errorDescription = '';
         
         if (errorData.message) {
           errorMessage = errorData.message;
+          errorDescription = errorData.path ? `Endpoint: ${errorData.path}` : '';
         } else if (errorData.validationErrors) {
-          // Para erros de validação, pegar a primeira mensagem
-          const firstError = Object.values(errorData.validationErrors)[0];
-          errorMessage = firstError as string || errorMessage;
+          // Para erros de validação, mostrar todos os erros
+          const errors = Object.entries(errorData.validationErrors);
+          errorMessage = 'Dados inválidos fornecidos';
+          errorDescription = errors.map(([field, msg]) => `${field}: ${msg}`).join('\n');
         } else if (errorData.error && errorData.error !== errorData.message) {
           errorMessage = errorData.error;
         }
         
-        if (errorData.error && typeof errorData.error === 'string') {
+        // Definir título baseado no status
+        switch (response.status) {
+          case 400:
+            errorTitle = 'Dados Inválidos';
+            break;
+          case 401:
+            errorTitle = 'Não Autorizado';
+            break;
+          case 403:
+            errorTitle = 'Acesso Negado';
+            break;
+          case 404:
+            errorTitle = 'Não Encontrado';
+            break;
+          case 409:
+            errorTitle = 'Conflito';
+            break;
+          case 500:
+            errorTitle = 'Erro do Servidor';
+            break;
+          default:
+            errorTitle = errorData.error || 'Erro';
+        }
+        
+        if (errorData.error && typeof errorData.error === 'string' && !errorTitle.includes('Erro')) {
           errorTitle = errorData.error;
         }
         
         const error = new Error(errorMessage);
         (error as any).status = response.status;
         (error as any).title = errorTitle;
+        (error as any).description = errorDescription;
         (error as any).validationErrors = errorData.validationErrors;
         (error as any).originalError = errorData;
         throw error;

@@ -40,6 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: RegisterRequest) => {
     try {
+      toast.loading('📝 Criando sua conta...', {
+        id: 'signup-loading'
+      });
+      
       // Validar idade (maior de 18 anos)
       const birthDate = new Date(userData.dataNascimento);
       const today = new Date();
@@ -47,16 +51,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const monthDiff = today.getMonth() - birthDate.getMonth();
       
       if (age < 18 || (age === 18 && monthDiff < 0)) {
+        toast.dismiss('signup-loading');
         throw new Error('Usuário deve ser maior de 18 anos');
       }
 
       const response = await apiClient.register(userData);
-      toast.success('✅ Cadastro realizado com sucesso!', {
-        description: 'Você pode fazer login agora com suas credenciais.',
+      
+      toast.dismiss('signup-loading');
+      toast.success('🎉 Conta criada com sucesso!', {
+        description: `Bem-vindo(a), ${userData.nome}! Você já pode fazer login com suas credenciais.`,
+        duration: 6000,
       });
     } catch (error: any) {
-      toast.error('❌ Erro no cadastro', {
-        description: error.message || 'Verifique os dados e tente novamente.',
+      toast.dismiss('signup-loading');
+      
+      const errorTitle = (error as any).title || 'Erro no Cadastro';
+      const errorDescription = (error as any).description || 'Verifique os dados fornecidos e tente novamente.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }
@@ -64,6 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      toast.loading('🔐 Verificando credenciais...', {
+        id: 'signin-loading'
+      });
+      
       const response = await apiClient.login(email, password);
       
       // Store token and user data
@@ -71,16 +89,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('userData', JSON.stringify(response.usuario));
       setUser(response.usuario);
       
-      toast.success(`👋 Bem-vindo, ${response.usuario.nome}!`, {
-        description: 'Redirecionando para o dashboard...',
+      toast.dismiss('signin-loading');
+      toast.success(`🎉 Bem-vindo de volta, ${response.usuario.nome}!`, {
+        description: `Login realizado com sucesso. Redirecionando para o dashboard...`,
+        duration: 4000,
       });
       
       // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('🔒 Falha na autenticação', {
-        description: error.message || 'Verifique suas credenciais e tente novamente.',
+      toast.dismiss('signin-loading');
+      
+      const errorTitle = (error as any).title || 'Falha na Autenticação';
+      const errorDescription = (error as any).description || 'Verifique seu email e senha.';
+      
+      toast.error(`🔒 ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }
@@ -88,20 +114,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      toast.loading('👋 Fazendo logout...', {
+        id: 'signout-loading'
+      });
+      
       // Clear local storage
       apiClient.setToken(null);
       localStorage.removeItem('userData');
       setUser(null);
       
+      toast.dismiss('signout-loading');
       toast.success('👋 Até logo!', {
-        description: 'Logout realizado com sucesso.',
+        description: 'Logout realizado com sucesso. Esperamos vê-lo novamente em breve!',
+        duration: 4000,
       });
       
       // Redirect to login page
       navigate('/login');
     } catch (error: any) {
-      toast.error('❌ Erro no logout', {
-        description: error.message || 'Tente novamente.',
+      toast.dismiss('signout-loading');
+      toast.error('❌ Erro no Logout', {
+        description: `${error.message || 'Ocorreu um erro inesperado. Tente novamente.'}`,
+        duration: 6000,
       });
       throw error;
     }

@@ -68,8 +68,12 @@ export function Pacientes() {
       setPacientesPage(data);
     } catch (error: any) {
       console.error('Error fetching pacientes:', error);
-      toast.error('❌ Erro ao carregar pacientes', {
-        description: error.message || 'Não foi possível carregar a lista de pacientes.',
+      
+      const errorTitle = (error as any).title || 'Erro ao Carregar Dados';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message || 'Não foi possível carregar a lista de pacientes.'}`,
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -78,18 +82,30 @@ export function Pacientes() {
 
   const handleCreatePaciente = async (data: PacienteFormData) => {
     try {
+      toast.loading('👤 Cadastrando paciente...', {
+        id: 'create-patient-loading'
+      });
+      
       const newPaciente = await apiClient.createPaciente(data);
       // Refresh current page
       fetchPacientes();
       
-      toast.success('✅ Paciente cadastrado com sucesso!', {
-        description: `${data.nome} foi adicionado ao sistema.`,
+      toast.dismiss('create-patient-loading');
+      toast.success('🎉 Paciente cadastrado com sucesso!', {
+        description: `${data.nome} foi adicionado ao sistema com CPF ${data.cpf}.`,
+        duration: 5000,
       });
     } catch (error: any) {
       console.error('Error creating paciente:', error);
       
-      toast.error('❌ Erro no cadastro', {
-        description: error.message || 'Não foi possível cadastrar o paciente.',
+      toast.dismiss('create-patient-loading');
+      
+      const errorTitle = (error as any).title || 'Erro no Cadastro';
+      const errorDescription = (error as any).description || 'Verifique os dados fornecidos.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }
@@ -99,18 +115,30 @@ export function Pacientes() {
     if (!editingPaciente) return;
 
     try {
+      toast.loading('✏️ Atualizando dados...', {
+        id: 'update-patient-loading'
+      });
+      
       const updatedPaciente = await apiClient.updatePaciente(editingPaciente.id, data);
       // Refresh current page
       fetchPacientes();
       
-      toast.success('✅ Paciente atualizado com sucesso!', {
-        description: `Dados de ${data.nome} foram atualizados.`,
+      toast.dismiss('update-patient-loading');
+      toast.success('✅ Dados atualizados com sucesso!', {
+        description: `As informações de ${data.nome} foram atualizadas no sistema.`,
+        duration: 5000,
       });
     } catch (error: any) {
       console.error('Error updating paciente:', error);
       
-      toast.error('❌ Erro na atualização', {
-        description: error.message || 'Não foi possível atualizar o paciente.',
+      toast.dismiss('update-patient-loading');
+      
+      const errorTitle = (error as any).title || 'Erro na Atualização';
+      const errorDescription = (error as any).description || 'Verifique os dados fornecidos.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }
@@ -121,20 +149,33 @@ export function Pacientes() {
 
     try {
       setDeleting(true);
+      toast.loading('🗑️ Removendo paciente...', {
+        id: 'delete-patient-loading'
+      });
+      
       await apiClient.deletePaciente(pacienteToDelete.id);
       // Refresh current page
       fetchPacientes();
       
+      toast.dismiss('delete-patient-loading');
       toast.success('✅ Paciente removido com sucesso!', {
-        description: `${pacienteToDelete.nome} foi removido do sistema.`,
+        description: `${pacienteToDelete.nome} foi removido do sistema permanentemente.`,
+        duration: 5000,
       });
       
       setShowDeleteDialog(false);
       setPacienteToDelete(null);
     } catch (error: any) {
       console.error('Error deleting paciente:', error);
-      toast.error('❌ Erro ao remover paciente', {
-        description: error.message || 'Não foi possível remover o paciente.',
+      
+      toast.dismiss('delete-patient-loading');
+      
+      const errorTitle = (error as any).title || 'Erro ao Remover';
+      const errorDescription = (error as any).description || 'O paciente pode ter consultas ou históricos vinculados.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
     } finally {
       setDeleting(false);
@@ -185,8 +226,12 @@ export function Pacientes() {
       setPacienteHistoricos(historicosData);
     } catch (error) {
       console.error('Error fetching patient details:', error);
-      toast.error('❌ Erro ao carregar detalhes', {
-        description: 'Não foi possível carregar os detalhes do paciente.',
+      
+      const errorTitle = (error as any).title || 'Erro ao Carregar Detalhes';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${(error as any).message || 'Não foi possível carregar os detalhes do paciente.'}`,
+        duration: 6000,
       });
     } finally {
       setLoadingDetails(false);

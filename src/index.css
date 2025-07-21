@@ -31,64 +31,111 @@ html, body {
 }
 
 /* Toast customizations */
-.toast-custom {
+.toast-enhanced {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-weight: 500;
+}
+
+/* Enhanced toast styles */
+.toast-enhanced .Toaster__toast {
+  transform: translateX(0) !important;
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-enhanced .Toaster__toast[data-removed="true"] {
+  animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 1, 1);
 }
 
 /* Toast animations */
-@keyframes toast-enter {
+@keyframes slideInRight {
   0% {
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.95);
     opacity: 0;
   }
+  50% {
+    transform: translateX(-10px) scale(1.02);
+    opacity: 0.8;
+  }
   100% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     opacity: 1;
   }
 }
 
-@keyframes toast-exit {
+@keyframes slideOutRight {
   0% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.95);
     opacity: 0;
   }
 }
 
-/* Custom toast styles */
-[data-sonner-toaster] {
-  --width: 400px;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+/* Toast content styling */
+.toast-enhanced .Toaster__toast-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+  line-height: 1.4;
 }
 
-[data-sonner-toast] {
-  animation: toast-enter 0.3s ease-out;
+.toast-enhanced .Toaster__toast-description {
+  font-weight: 400;
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.5;
+  margin-top: 4px;
 }
 
-[data-sonner-toast][data-removed="true"] {
-  animation: toast-exit 0.2s ease-in;
+/* Enhanced progress bar */
+.toast-enhanced .Toaster__toast-progress {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Medical theme colors */
-.toast-medical-success {
+/* Success toast enhancements */
+.toast-enhanced .Toaster__toast--success {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid #16a34a;
+  color: #14532d;
 }
 
-.toast-medical-error {
+.toast-enhanced .Toaster__toast--success .Toaster__toast-icon {
+  color: #16a34a;
+}
+
+/* Error toast enhancements */
+.toast-enhanced .Toaster__toast--error {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid #dc2626;
+  color: #7f1d1d;
 }
 
-.toast-medical-info {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-left: 4px solid #3b82f6;
+.toast-enhanced .Toaster__toast--error .Toaster__toast-icon {
+  color: #dc2626;
 }
 
-.toast-medical-warning {
+/* Loading toast enhancements */
+.toast-enhanced .Toaster__toast--loading {
   background: linear-gradient(135deg, #fefbf3 0%, #fef3c7 100%);
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #d97706;
+  color: #78350f;
+}
+
+.toast-enhanced .Toaster__toast--loading .Toaster__toast-icon {
+  color: #d97706;
+}
+
+/* Info toast enhancements */
+.toast-enhanced .Toaster__toast--info {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-left: 4px solid #2563eb;
+  color: #1e3a8a;
+}
+
+.toast-enhanced .Toaster__toast--info .Toaster__toast-icon {
+  color: #2563eb;
 }

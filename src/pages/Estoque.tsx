@@ -77,18 +77,30 @@ export function Estoque() {
 
   const handleCreateItem = async (data: EstoqueFormData) => {
     try {
+      toast.loading('📦 Cadastrando item no estoque...', {
+        id: 'create-item-loading'
+      });
+      
       const newItem = await apiClient.createEstoqueItem(data);
       // Refresh current page
       fetchEstoque();
       
-      toast.success('📦 Item cadastrado com sucesso!', {
-        description: `${data.nome} foi adicionado ao estoque com ${data.quantidade} ${data.unidade}.`,
+      toast.dismiss('create-item-loading');
+      toast.success('🎉 Item cadastrado no estoque!', {
+        description: `${data.nome} (${data.codigo}) foi adicionado com ${data.quantidade} ${data.unidade}.`,
+        duration: 5000,
       });
     } catch (error: any) {
       console.error('Error creating item:', error);
       
-      toast.error('❌ Erro no cadastro', {
-        description: error.message || 'Não foi possível cadastrar o item.',
+      toast.dismiss('create-item-loading');
+      
+      const errorTitle = (error as any).title || 'Erro no Cadastro';
+      const errorDescription = (error as any).description || 'Verifique se o código não está duplicado.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }
@@ -123,6 +135,16 @@ export function Estoque() {
     if (!itemParaAjuste) return;
 
     try {
+      const operacaoTexto = {
+        adicionar: 'Adicionando',
+        remover: 'Removendo',
+        ajustar: 'Ajustando'
+      }[tipo];
+      
+      toast.loading(`📊 ${operacaoTexto} quantidade...`, {
+        id: 'adjust-quantity-loading'
+      });
+      
       let updatedItem: EstoqueResponse;
       
       switch (tipo) {
@@ -148,14 +170,22 @@ export function Estoque() {
         ajustar: 'ajustada para'
       }[tipo];
 
-      toast.success('📊 Quantidade atualizada!', {
+      toast.dismiss('adjust-quantity-loading');
+      toast.success('📊 Estoque atualizado com sucesso!', {
         description: `${quantidade} ${itemParaAjuste.unidade} ${operacaoTexto} ${tipo === 'ajustar' ? '' : 'ao'} estoque de ${itemParaAjuste.nome}.`,
+        duration: 5000,
       });
     } catch (error: any) {
       console.error('Error adjusting quantity:', error);
       
-      toast.error('❌ Erro no ajuste', {
-        description: error.message || 'Não foi possível ajustar a quantidade.',
+      toast.dismiss('adjust-quantity-loading');
+      
+      const errorTitle = (error as any).title || 'Erro no Ajuste';
+      const errorDescription = (error as any).description || 'Verifique se a quantidade é válida.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
       throw error;
     }

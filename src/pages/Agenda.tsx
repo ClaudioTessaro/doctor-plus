@@ -209,6 +209,17 @@ export function Agenda() {
 
   const handleAlterarStatus = async (consulta: ConsultaResponse, novoStatus: string) => {
     try {
+      const statusTexto = {
+        'AGENDADA': 'agendando',
+        'CONFIRMADA': 'confirmando', 
+        'CANCELADA': 'cancelando',
+        'REALIZADA': 'marcando como realizada'
+      }[novoStatus] || 'alterando status';
+      
+      toast.loading(`⏳ ${statusTexto.charAt(0).toUpperCase() + statusTexto.slice(1)} consulta...`, {
+        id: `status-change-${consulta.id}`
+      });
+      
       console.log('Alterando status da consulta:', consulta.id, 'para:', novoStatus);
       await apiClient.alterarStatusConsulta(consulta.id, novoStatus);
       
@@ -216,20 +227,37 @@ export function Agenda() {
         prev.map(c => c.id === consulta.id ? { ...c, status: novoStatus as any } : c)
       );
       
-      const statusTexto = {
+      toast.dismiss(`status-change-${consulta.id}`);
+      
+      const statusFinal = {
         'AGENDADA': 'agendada',
         'CONFIRMADA': 'confirmada', 
         'CANCELADA': 'cancelada',
         'REALIZADA': 'realizada'
-      }[novoStatus] || novoStatus;
+      }[novoStatus] || novoStatus.toLowerCase();
       
-      toast.success('✅ Status alterado!', {
-        description: `Consulta de ${consulta.paciente.nome} foi ${statusTexto}.`,
+      const statusIcon = {
+        'AGENDADA': '📅',
+        'CONFIRMADA': '✅',
+        'CANCELADA': '❌',
+        'REALIZADA': '✔️'
+      }[novoStatus] || '✅';
+      
+      toast.success(`${statusIcon} Status alterado com sucesso!`, {
+        description: `A consulta de ${consulta.paciente.nome} com Dr. ${consulta.profissional.usuario.nome} foi ${statusFinal}.`,
+        duration: 5000,
       });
     } catch (error: any) {
       console.error('Error changing status:', error);
-      toast.error('❌ Erro ao alterar status', {
-        description: error.message || 'Não foi possível alterar o status da consulta.',
+      
+      toast.dismiss(`status-change-${consulta.id}`);
+      
+      const errorTitle = (error as any).title || 'Erro ao Alterar Status';
+      const errorDescription = (error as any).description || 'Verifique se a consulta pode ter seu status alterado.';
+      
+      toast.error(`❌ ${errorTitle}`, {
+        description: `${error.message}${errorDescription ? '\n' + errorDescription : ''}`,
+        duration: 8000,
       });
     }
   };

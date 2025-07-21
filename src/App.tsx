@@ -49,26 +49,29 @@ function App() {
           <Toaster
             position="top-right"
             toastOptions={{
-              duration: 5000,
-              className: 'toast-custom',
+              duration: 6000,
+              className: 'toast-enhanced',
               style: {
                 background: '#ffffff',
                 color: '#1f2937',
                 border: '1px solid #e5e7eb',
-                borderRadius: '12px',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                padding: '16px 20px',
-                fontSize: '14px',
+                borderRadius: '16px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                padding: '20px 24px',
+                fontSize: '15px',
                 fontWeight: '500',
-                maxWidth: '400px',
+                maxWidth: '500px',
+                minWidth: '350px',
+                lineHeight: '1.5',
               },
               success: {
-                duration: 4000,
+                duration: 5000,
                 style: {
-                  background: '#f0fdf4',
-                  color: '#166534',
-                  border: '1px solid #bbf7d0',
-                  boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.1), 0 4px 6px -2px rgba(34, 197, 94, 0.05)',
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                  color: '#14532d',
+                  border: '1px solid #16a34a',
+                  borderLeft: '4px solid #16a34a',
+                  boxShadow: '0 20px 25px -5px rgba(34, 197, 94, 0.15), 0 10px 10px -5px rgba(34, 197, 94, 0.08)',
                 },
                 iconTheme: {
                   primary: '#22c55e',
@@ -76,12 +79,13 @@ function App() {
                 },
               },
               error: {
-                duration: 6000,
+                duration: 8000,
                 style: {
-                  background: '#fef2f2',
-                  color: '#991b1b',
-                  border: '1px solid #fecaca',
-                  boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.1), 0 4px 6px -2px rgba(239, 68, 68, 0.05)',
+                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                  color: '#7f1d1d',
+                  border: '1px solid #dc2626',
+                  borderLeft: '4px solid #dc2626',
+                  boxShadow: '0 20px 25px -5px rgba(239, 68, 68, 0.15), 0 10px 10px -5px rgba(239, 68, 68, 0.08)',
                 },
                 iconTheme: {
                   primary: '#ef4444',
@@ -90,10 +94,11 @@ function App() {
               },
               loading: {
                 style: {
-                  background: '#fefbf3',
-                  color: '#92400e',
-                  border: '1px solid #fed7aa',
-                  boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05)',
+                  background: 'linear-gradient(135deg, #fefbf3 0%, #fef3c7 100%)',
+                  color: '#78350f',
+                  border: '1px solid #d97706',
+                  borderLeft: '4px solid #d97706',
+                  boxShadow: '0 20px 25px -5px rgba(245, 158, 11, 0.15), 0 10px 10px -5px rgba(245, 158, 11, 0.08)',
                 },
                 iconTheme: {
                   primary: '#f59e0b',
