@@ -321,6 +321,23 @@ class ApiClient {
   async searchSecretarios(termo: string) {
     return this.request<SecretarioResponse[]>(`/secretarios/buscar?termo=${encodeURIComponent(termo)}`);
   }
+
+  // Dashboard endpoints
+  async getDashboardStats() {
+    return this.request<DashboardStatsResponse>('/dashboard/stats');
+  }
+
+  async getPacienteStats() {
+    return this.request<DashboardStatsResponse['PacienteStats']>('/dashboard/stats/pacientes');
+  }
+
+  async getConsultaStats() {
+    return this.request<DashboardStatsResponse['ConsultaStats']>('/dashboard/stats/consultas');
+  }
+
+  async getFinanceiroStats() {
+    return this.request<DashboardStatsResponse['FinanceiroStats']>('/dashboard/stats/financeiro');
+  }
 }
 
 // Instância global do cliente API
@@ -468,4 +485,42 @@ export interface SecretarioResponse {
     profissional: ProfissionalResponse;
   }[];
   createdAt: string;
+}
+
+export interface DashboardStatsResponse {
+  totalPacientes: number;
+  totalProfissionais: number;
+  totalSecretarios: number;
+  totalHistoricos: number;
+  consultasHoje: number;
+  consultasSemana: number;
+  consultasMes: number;
+  consultasAgendadas: number;
+  consultasConfirmadas: number;
+  consultasRealizadas: number;
+  itensEstoque: number;
+  itensEstoqueBaixo: number;
+  itensEsgotados: number;
+  pacientesNovosHoje: number;
+  pacientesNovosSemana: number;
+  receitaMes: number;
+  PacienteStats: {
+    total: number;
+    novosMes: number;
+    crescimentoMensal: number;
+  };
+  ConsultaStats: {
+    totalMes: number;
+    agendadas: number;
+    confirmadas: number;
+    realizadas: number;
+    canceladas: number;
+    taxaRealizacao: number;
+  };
+  FinanceiroStats: {
+    receitaMes: number;
+    receitaHoje: number;
+    crescimentoMensal: number;
+    ticketMedio: number;
+  };
 }

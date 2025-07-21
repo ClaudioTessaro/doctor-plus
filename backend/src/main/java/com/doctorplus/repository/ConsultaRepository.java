@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -37,4 +38,18 @@ public interface ConsultaRepository extends JpaRepository<Consulta, UUID> {
     @Query("SELECT c FROM Consulta c WHERE c.dataHora >= :agora AND c.status = 'AGENDADA' " +
            "ORDER BY c.dataHora LIMIT 5")
     List<Consulta> findProximasConsultas(@Param("agora") LocalDateTime agora);
+
+    Long countByStatus(StatusConsulta status);
+
+    @Query("SELECT COUNT(c) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim")
+    Long countConsultasRealizadasMes(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT SUM(c.valor) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim")
+    BigDecimal sumReceitaMes(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT SUM(c.valor) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim")
+    BigDecimal sumReceitaDia(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT AVG(c.valor) FROM Consulta c WHERE c.status = 'REALIZADA' AND c.dataHora BETWEEN :inicio AND :fim AND c.valor IS NOT NULL")
+    BigDecimal avgTicketMedio(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 }

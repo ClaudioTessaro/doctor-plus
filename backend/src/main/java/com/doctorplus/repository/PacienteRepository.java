@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,4 +30,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, UUID> {
 
     @Query("SELECT COUNT(p) FROM Paciente p")
     Long countTotalPacientes();
+
+    @Query("SELECT COUNT(p) FROM Paciente p WHERE p.createdAt BETWEEN :inicio AND :fim")
+    Long countPacientesNovos(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 }
