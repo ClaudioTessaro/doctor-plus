@@ -1,5 +1,32 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useLocation, Link } from 'wouter';
+
+function SidebarItems({ items, collapsed }: { items: any[], collapsed: boolean }) {
+  const [location] = useLocation();
+  
+  return (
+    <>
+      {items.map((item) => {
+        const isActive = location === item.path;
+        
+        return (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+              isActive
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <item.icon className="h-5 w-5" />
+            {!collapsed && <span className="ml-3">{item.label}</span>}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
 import {
   LayoutDashboard,
   Users,
@@ -57,22 +84,7 @@ export function Sidebar() {
 
       <div className="flex-1 flex flex-col min-h-0">
         <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
-        {filteredMenuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`
-            }
-          >
-            <item.icon className="h-5 w-5" />
-            {!collapsed && <span className="ml-3">{item.label}</span>}
-          </NavLink>
-        ))}
+        <SidebarItems items={filteredMenuItems} collapsed={collapsed} />
         </nav>
 
         <div className="p-4 border-t border-gray-200 flex-shrink-0">

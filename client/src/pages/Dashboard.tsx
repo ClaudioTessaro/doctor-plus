@@ -7,12 +7,12 @@ import { EstoqueAlerts } from '../components/Dashboard/EstoqueAlerts';
 import { FinanceiroChart } from '../components/Dashboard/FinanceiroChart';
 import { useEffect, useState } from 'react';
 import { apiClient, ConsultaResponse } from '../lib/api';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export function Dashboard() {
   const [proximasConsultas, setProximasConsultas] = useState<ConsultaResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     fetchProximasConsultas();
