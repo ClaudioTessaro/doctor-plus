@@ -44,23 +44,41 @@ class ApiClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        let errorData;
+        let errorData: any = {};
         try {
           errorData = await response.json();
         } catch {
-          errorData = { message: `Erro HTTP ${response.status}` };
+          errorData = { 
+            message: `Erro HTTP ${response.status}`,
+            error: `Erro ${response.status}`,
+            status: response.status
+          };
         }
         console.error('API Error:', response.status, errorData);
         
-        // Extrair mensagem de erro do backend
-        const errorMessage = errorData.message || 
-                            errorData.error || 
-                            errorData.validationErrors?.message ||
-                            `Erro HTTP ${response.status}`;
+        // Extrair mensagem de erro do backend com prioridade
+        let errorMessage = `Erro HTTP ${response.status}`;
+        let errorTitle = 'Erro';
+        
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.validationErrors) {
+          // Para erros de validação, pegar a primeira mensagem
+          const firstError = Object.values(errorData.validationErrors)[0];
+          errorMessage = firstError as string || errorMessage;
+        } else if (errorData.error && errorData.error !== errorData.message) {
+          errorMessage = errorData.error;
+        }
+        
+        if (errorData.error && typeof errorData.error === 'string') {
+          errorTitle = errorData.error;
+        }
         
         const error = new Error(errorMessage);
         (error as any).status = response.status;
+        (error as any).title = errorTitle;
         (error as any).validationErrors = errorData.validationErrors;
+        (error as any).originalError = errorData;
         throw error;
       }
 
