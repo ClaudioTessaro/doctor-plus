@@ -72,6 +72,14 @@ public class EstoqueController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/simples")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @Operation(summary = "Listar todos os itens simples", description = "Retorna lista simples de todos os itens para seleção")
+    public ResponseEntity<List<EstoqueResponse>> listarTodosSimples() {
+        List<EstoqueResponse> response = estoqueService.listarTodosSimples();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/categoria/{categoria}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar itens por categoria", description = "Retorna itens filtrados por categoria")

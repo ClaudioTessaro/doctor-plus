@@ -68,6 +68,14 @@ public class HistoricoController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/simples")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @Operation(summary = "Listar todos os históricos simples", description = "Retorna lista simples de todos os históricos")
+    public ResponseEntity<List<HistoricoResponse>> listarTodosSimples() {
+        List<HistoricoResponse> response = historicoService.listarTodosSimples();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Listar históricos do paciente", description = "Retorna histórico médico completo de um paciente")

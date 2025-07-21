@@ -76,6 +76,14 @@ public class PacienteController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/simples")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
+    @Operation(summary = "Listar todos os pacientes simples", description = "Retorna lista simples de todos os pacientes para autocomplete")
+    public ResponseEntity<List<PacienteResponse>> listarTodosSimples() {
+        List<PacienteResponse> response = pacienteService.listarTodosSimples();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
     @Operation(summary = "Buscar pacientes paginados", description = "Busca pacientes por nome, CPF ou email com paginação")

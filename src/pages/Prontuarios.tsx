@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FileText, Search, Plus, Eye, Edit, Trash2, Calendar, User, Stethoscope, Pill, Loader2 } from 'lucide-react';
-import { apiClient, HistoricoResponse, PacienteResponse } from '../lib/api';
+import { apiClient, HistoricoResponse, PacienteResponse, PageResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { ProntuarioModal } from '../components/Prontuarios/ProntuarioModal';
 import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
+import { Pagination } from '../components/Common/Pagination';
 
 interface ProntuarioFormData {
   pacienteId: string;
@@ -16,10 +17,21 @@ interface ProntuarioFormData {
 }
 
 export function Prontuarios() {
-  const [historicos, setHistoricos] = useState<HistoricoResponse[]>([]);
+  const [historicosPage, setHistoricosPage] = useState<PageResponse<HistoricoResponse>>({
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+    first: true,
+    last: true,
+    empty: true
+  });
   const [pacientes, setPacientes] = useState<PacienteResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [selectedPaciente, setSelectedPaciente] = useState<string>('');
   
   // Modal states
@@ -32,18 +44,24 @@ export function Prontuarios() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    // Reset page when search term changes
+    setCurrentPage(0);
+    fetchData();
+  }, [searchTerm]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       
       const [historicosData, pacientesData] = await Promise.all([
-        apiClient.getHistoricos(),
-        apiClient.getPacientes(),
+        fetchHistoricos(),
+        apiClient.getPacientesSimples(),
       ]);
 
-      setHistoricos(historicosData);
+      setHistoricosPage(historicosData);
       setPacientes(pacientesData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -52,6 +70,14 @@ export function Prontuarios() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHistoricos = async () => {
+    if (searchTerm.trim()) {
+      return await apiClient.searchHistoricosPaginated(searchTerm, currentPage, pageSize);
+    } else {
+      return await apiClient.getHistoricos(currentPage, pageSize);
     }
   };
 
@@ -65,7 +91,8 @@ export function Prontuarios() {
         dataConsulta: data.dataConsulta,
       });
 
-      setHistoricos(prev => [newHistorico, ...prev]);
+      // Refresh current page
+      fetchData();
       
       const paciente = pacientes.find(p => p.id === data.pacienteId);
       
@@ -101,9 +128,8 @@ export function Prontuarios() {
         dataConsulta: data.dataConsulta,
       });
 
-      setHistoricos(prev => 
-        prev.map(h => h.id === editingHistorico.id ? updatedHistorico : h)
-      );
+      // Refresh current page
+      fetchData();
       
       toast.success('✅ Prontuário atualizado com sucesso!', {
         description: `Registro médico de ${updatedHistorico.paciente.nome} foi atualizado.`,
@@ -124,7 +150,8 @@ export function Prontuarios() {
       setDeleting(true);
       await apiClient.deleteHistorico(historicoToDelete.id);
       
-      setHistoricos(prev => prev.filter(h => h.id !== historicoToDelete.id));
+      // Refresh current page
+      fetchData();
       
       toast.success('✅ Prontuário removido com sucesso!', {
         description: `Registro médico de ${historicoToDelete.paciente.nome} foi removido.`,
@@ -166,16 +193,19 @@ export function Prontuarios() {
     setExpandedHistorico(expandedHistorico === historicoId ? null : historicoId);
   };
 
-  const filteredHistoricos = historicos.filter(historico => {
-    const matchSearch = historico.paciente?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       historico.profissional?.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       historico.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       historico.diagnostico?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchPaciente = !selectedPaciente || historico.paciente?.id === selectedPaciente;
-    
-    return matchSearch && matchPaciente;
-  });
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(0);
+  };
+
+  // Filter by selected patient on frontend since it's a simple filter
+  const filteredHistoricos = selectedPaciente 
+    ? historicosPage.content.filter(h => h.paciente?.id === selectedPaciente)
+    : historicosPage.content;
 
   if (loading) {
     return (
@@ -194,7 +224,7 @@ export function Prontuarios() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Prontuários</h1>
           <p className="text-gray-600 mt-2">
-            Histórico médico dos pacientes ({historicos.length} registros)
+            Histórico médico dos pacientes ({historicosPage.totalElements} registros)
           </p>
         </div>
         <button
@@ -371,6 +401,18 @@ export function Prontuarios() {
             </div>
           )}
         </div>
+
+        {/* Paginação */}
+        {historicosPage.totalElements > 0 && !selectedPaciente && (
+          <Pagination
+            currentPage={historicosPage.page}
+            totalPages={historicosPage.totalPages}
+            totalElements={historicosPage.totalElements}
+            pageSize={historicosPage.size}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
       </div>
 
       {/* Modal de Prontuário */}
