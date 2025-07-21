@@ -176,7 +176,7 @@ class ApiClient {
   }
 
   async alterarStatusConsulta(id: string, status: string) {
-    return this.request(`/consultas/${id}/status?status=${status}`, {
+    return this.request<ConsultaResponse>(`/consultas/${id}/status?status=${status}`, {
       method: 'PATCH',
     });
   }

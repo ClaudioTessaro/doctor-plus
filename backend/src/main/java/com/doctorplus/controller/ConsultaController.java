@@ -108,8 +108,9 @@ public class ConsultaController {
     @Operation(summary = "Alterar status da consulta", description = "Altera o status de uma consulta")
     public ResponseEntity<ConsultaResponse> alterarStatus(
             @PathVariable UUID id,
-            @RequestParam StatusConsulta status) {
-        ConsultaResponse response = consultaService.alterarStatus(id, status);
+            @RequestParam String status) {
+        StatusConsulta statusEnum = StatusConsulta.valueOf(status);
+        ConsultaResponse response = consultaService.alterarStatus(id, statusEnum);
         return ResponseEntity.ok(response);
     }
 
