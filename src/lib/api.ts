@@ -249,12 +249,6 @@ class ApiClient {
     });
   }
 
-  async createHistorico(data: HistoricoCreateRequest) {
-    return this.request<HistoricoResponse>('/historicos', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
 
   async updateHistorico(id: string, data: HistoricoCreateRequest) {
     return this.request<HistoricoResponse>(`/historicos/${id}`, {
@@ -326,11 +320,6 @@ class ApiClient {
 
   async searchSecretarios(termo: string) {
     return this.request<SecretarioResponse[]>(`/secretarios/buscar?termo=${encodeURIComponent(termo)}`);
-  }
-
-  // Profissionais endpoints
-  async getProfissionais() {
-    return this.request<ProfissionalResponse[]>('/profissionais');
   }
 }
 
