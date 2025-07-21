@@ -161,6 +161,11 @@ class ApiClient {
     });
   }
 
+  // Profissionais endpoints
+  async getProfissionais() {
+    return this.request<ProfissionalResponse[]>('/profissionais');
+  }
+
   // Estoque endpoints
   async getEstoque() {
     return this.request<EstoqueResponse[]>('/estoque');
