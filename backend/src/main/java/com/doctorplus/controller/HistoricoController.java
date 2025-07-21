@@ -2,6 +2,7 @@ package com.doctorplus.controller;
 
 import com.doctorplus.dto.request.HistoricoCreateRequest;
 import com.doctorplus.dto.response.HistoricoResponse;
+import com.doctorplus.dto.response.PageResponse;
 import com.doctorplus.security.CurrentUser;
 import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.HistoricoService;
@@ -10,6 +11,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,9 +54,17 @@ public class HistoricoController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Listar todos os históricos", description = "Retorna lista de todos os históricos")
-    public ResponseEntity<List<HistoricoResponse>> listarTodos() {
-        List<HistoricoResponse> response = historicoService.listarTodos();
+    @Operation(summary = "Listar históricos paginados", description = "Retorna lista paginada de históricos")
+    public ResponseEntity<PageResponse<HistoricoResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "dataConsulta") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        
+        PageResponse<HistoricoResponse> response = historicoService.listarTodos(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -74,9 +86,14 @@ public class HistoricoController {
 
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Buscar históricos", description = "Busca históricos por termo")
-    public ResponseEntity<List<HistoricoResponse>> buscarPorTermo(@RequestParam String termo) {
-        List<HistoricoResponse> response = historicoService.buscarPorTermo(termo);
+    @Operation(summary = "Buscar históricos paginados", description = "Busca históricos por termo com paginação")
+    public ResponseEntity<PageResponse<HistoricoResponse>> buscarPorTermo(
+            @RequestParam String termo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataConsulta"));
+        PageResponse<HistoricoResponse> response = historicoService.buscarPorTermo(termo, pageable);
         return ResponseEntity.ok(response);
     }
 

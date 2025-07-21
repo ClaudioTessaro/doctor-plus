@@ -3,6 +3,7 @@ package com.doctorplus.service;
 import com.doctorplus.domain.entity.Estoque;
 import com.doctorplus.dto.request.EstoqueCreateRequest;
 import com.doctorplus.dto.response.EstoqueResponse;
+import com.doctorplus.dto.response.PageResponse;
 import com.doctorplus.exception.BusinessException;
 import com.doctorplus.exception.ResourceNotFoundException;
 import com.doctorplus.mapper.EstoqueMapper;
@@ -10,6 +11,8 @@ import com.doctorplus.repository.EstoqueRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,9 +63,15 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstoqueResponse> listarTodos() {
-        List<Estoque> itens = estoqueRepository.findByAtivoTrueOrderByNome();
-        return estoqueMapper.toResponseList(itens);
+    public PageResponse<EstoqueResponse> listarTodos(Pageable pageable) {
+        Page<Estoque> itensPage = estoqueRepository.findByAtivoTrue(pageable);
+        List<EstoqueResponse> itens = estoqueMapper.toResponseList(itensPage.getContent());
+        return new PageResponse<>(
+            itens,
+            itensPage.getNumber(),
+            itensPage.getSize(),
+            itensPage.getTotalElements()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -84,8 +93,20 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstoqueResponse> buscarPorTermo(String termo) {
-        List<Estoque> itens = estoqueRepository.buscarPorTermo(termo);
+    public PageResponse<EstoqueResponse> buscarPorTermo(String termo, Pageable pageable) {
+        Page<Estoque> itensPage = estoqueRepository.buscarPorTermo(termo, pageable);
+        List<EstoqueResponse> itens = estoqueMapper.toResponseList(itensPage.getContent());
+        return new PageResponse<>(
+            itens,
+            itensPage.getNumber(),
+            itensPage.getSize(),
+            itensPage.getTotalElements()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstoqueResponse> listarTodosSimples() {
+        List<Estoque> itens = estoqueRepository.findByAtivoTrueOrderByNome();
         return estoqueMapper.toResponseList(itens);
     }
 

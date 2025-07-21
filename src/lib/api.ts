@@ -90,8 +90,12 @@ class ApiClient {
   }
 
   // Pacientes endpoints
-  async getPacientes() {
-    return this.request<PacienteResponse[]>('/pacientes');
+  async getPacientes(page = 0, size = 20, sortBy = 'nome', sortDir = 'asc') {
+    return this.request<PageResponse<PacienteResponse>>(`/pacientes?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`);
+  }
+
+  async getPacientesSimples() {
+    return this.request<PacienteResponse[]>('/pacientes/simples');
   }
 
   async getPaciente(id: string) {
@@ -119,7 +123,11 @@ class ApiClient {
   }
 
   async searchPacientes(termo: string) {
-    return this.request<PacienteResponse[]>(`/pacientes/buscar?termo=${encodeURIComponent(termo)}`);
+    return this.request<PageResponse<PacienteResponse>>(`/pacientes/buscar?termo=${encodeURIComponent(termo)}`);
+  }
+
+  async searchPacientesPaginated(termo: string, page = 0, size = 20) {
+    return this.request<PageResponse<PacienteResponse>>(`/pacientes/buscar?termo=${encodeURIComponent(termo)}&page=${page}&size=${size}`);
   }
 
   // Consultas endpoints
@@ -183,8 +191,12 @@ class ApiClient {
   }
 
   // Estoque endpoints
-  async getEstoque() {
-    return this.request<EstoqueResponse[]>('/estoque');
+  async getEstoque(page = 0, size = 20, sortBy = 'nome', sortDir = 'asc') {
+    return this.request<PageResponse<EstoqueResponse>>(`/estoque?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`);
+  }
+
+  async getEstoqueSimples() {
+    return this.request<EstoqueResponse[]>('/estoque/simples');
   }
 
   async getEstoqueItem(id: string) {
@@ -234,12 +246,20 @@ class ApiClient {
   }
 
   async searchEstoque(termo: string) {
-    return this.request<EstoqueResponse[]>(`/estoque/buscar?termo=${encodeURIComponent(termo)}`);
+    return this.request<PageResponse<EstoqueResponse>>(`/estoque/buscar?termo=${encodeURIComponent(termo)}`);
+  }
+
+  async searchEstoquePaginated(termo: string, page = 0, size = 20) {
+    return this.request<PageResponse<EstoqueResponse>>(`/estoque/buscar?termo=${encodeURIComponent(termo)}&page=${page}&size=${size}`);
   }
 
   // Históricos endpoints
-  async getHistoricos() {
-    return this.request<HistoricoResponse[]>('/historicos');
+  async getHistoricos(page = 0, size = 20, sortBy = 'dataConsulta', sortDir = 'desc') {
+    return this.request<PageResponse<HistoricoResponse>>(`/historicos?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`);
+  }
+
+  async getHistoricosSimples() {
+    return this.request<HistoricoResponse[]>('/historicos/simples');
   }
 
   async createHistorico(data: HistoricoCreateRequest) {
@@ -268,7 +288,11 @@ class ApiClient {
   }
 
   async searchHistoricos(termo: string) {
-    return this.request<HistoricoResponse[]>(`/historicos/buscar?termo=${encodeURIComponent(termo)}`);
+    return this.request<PageResponse<HistoricoResponse>>(`/historicos/buscar?termo=${encodeURIComponent(termo)}`);
+  }
+
+  async searchHistoricosPaginated(termo: string, page = 0, size = 20) {
+    return this.request<PageResponse<HistoricoResponse>>(`/historicos/buscar?termo=${encodeURIComponent(termo)}&page=${page}&size=${size}`);
   }
 
   // Secretários endpoints
@@ -344,6 +368,17 @@ class ApiClient {
 export const apiClient = new ApiClient(API_BASE_URL);
 
 // Types
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 export interface LoginResponse {
   token: string;
   type: string;

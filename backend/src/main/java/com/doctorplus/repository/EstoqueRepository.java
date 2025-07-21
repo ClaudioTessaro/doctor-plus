@@ -1,6 +1,8 @@
 package com.doctorplus.repository;
 
 import com.doctorplus.domain.entity.Estoque;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,8 @@ public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
 
     List<Estoque> findByAtivoTrueOrderByNome();
 
+    Page<Estoque> findByAtivoTrue(Pageable pageable);
+
     List<Estoque> findByCategoria(String categoria);
 
     @Query("SELECT e FROM Estoque e WHERE e.ativo = true AND e.quantidade <= e.minAlerta")
@@ -31,7 +35,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
            "(LOWER(e.nome) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
            "LOWER(e.codigo) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
            "LOWER(e.categoria) LIKE LOWER(CONCAT('%', :termo, '%')))")
-    List<Estoque> buscarPorTermo(@Param("termo") String termo);
+    Page<Estoque> buscarPorTermo(@Param("termo") String termo, Pageable pageable);
 
     @Query("SELECT DISTINCT e.categoria FROM Estoque e WHERE e.categoria IS NOT NULL AND e.ativo = true")
     List<String> findAllCategorias();

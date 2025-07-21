@@ -2,6 +2,7 @@ package com.doctorplus.controller;
 
 import com.doctorplus.dto.request.PacienteCreateRequest;
 import com.doctorplus.dto.response.PacienteResponse;
+import com.doctorplus.dto.response.PageResponse;
 import com.doctorplus.security.CurrentUser;
 import com.doctorplus.security.UserPrincipal;
 import com.doctorplus.service.PacienteService;
@@ -10,6 +11,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -58,17 +62,30 @@ public class PacienteController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Listar todos os pacientes", description = "Retorna lista de todos os pacientes")
-    public ResponseEntity<List<PacienteResponse>> listarTodos() {
-        List<PacienteResponse> response = pacienteService.listarTodos();
+    @Operation(summary = "Listar pacientes paginados", description = "Retorna lista paginada de pacientes")
+    public ResponseEntity<PageResponse<PacienteResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "nome") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        
+        PageResponse<PacienteResponse> response = pacienteService.listarTodos(pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Buscar pacientes", description = "Busca pacientes por nome, CPF ou email")
-    public ResponseEntity<List<PacienteResponse>> buscarPorTermo(@RequestParam String termo) {
-        List<PacienteResponse> response = pacienteService.buscarPorTermo(termo);
+    @Operation(summary = "Buscar pacientes paginados", description = "Busca pacientes por nome, CPF ou email com paginação")
+    public ResponseEntity<PageResponse<PacienteResponse>> buscarPorTermo(
+            @RequestParam String termo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
+        PageResponse<PacienteResponse> response = pacienteService.buscarPorTermo(termo, pageable);
         return ResponseEntity.ok(response);
     }
 

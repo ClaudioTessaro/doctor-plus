@@ -1,6 +1,8 @@
 package com.doctorplus.repository;
 
 import com.doctorplus.domain.entity.Historico;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,7 +24,7 @@ public interface HistoricoRepository extends JpaRepository<Historico, UUID> {
            "LOWER(h.descricao) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
            "LOWER(h.diagnostico) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
            "LOWER(h.paciente.nome) LIKE LOWER(CONCAT('%', :termo, '%'))")
-    List<Historico> buscarPorTermo(@Param("termo") String termo);
+    Page<Historico> buscarPorTermo(@Param("termo") String termo, Pageable pageable);
 
     @Query("SELECT COUNT(h) FROM Historico h")
     Long countTotalHistoricos();

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Phone, Mail, Eye, Loader2 } from 'lucide-react';
-import { apiClient, PacienteResponse } from '../lib/api';
+import { apiClient, PacienteResponse, PageResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { PacienteModal } from '../components/Pacientes/PacienteModal';
 import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
+import { Pagination } from '../components/Common/Pagination';
 
 interface PacienteFormData {
   nome: string;
@@ -17,9 +18,20 @@ interface PacienteFormData {
 }
 
 export function Pacientes() {
-  const [pacientes, setPacientes] = useState<PacienteResponse[]>([]);
+  const [pacientesPage, setPacientesPage] = useState<PageResponse<PacienteResponse>>({
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+    first: true,
+    last: true,
+    empty: true
+  });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [showModal, setShowModal] = useState(false);
   const [editingPaciente, setEditingPaciente] = useState<PacienteResponse | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -28,13 +40,24 @@ export function Pacientes() {
 
   useEffect(() => {
     fetchPacientes();
-  }, []);
+  }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    // Reset page when search term changes
+    setCurrentPage(0);
+    fetchPacientes();
+  }, [searchTerm]);
 
   const fetchPacientes = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getPacientes();
-      setPacientes(data);
+      let data;
+      if (searchTerm.trim()) {
+        data = await apiClient.searchPacientesPaginated(searchTerm, currentPage, pageSize);
+      } else {
+        data = await apiClient.getPacientes(currentPage, pageSize);
+      }
+      setPacientesPage(data);
     } catch (error: any) {
       console.error('Error fetching pacientes:', error);
       toast.error('❌ Erro ao carregar pacientes', {
@@ -48,7 +71,8 @@ export function Pacientes() {
   const handleCreatePaciente = async (data: PacienteFormData) => {
     try {
       const newPaciente = await apiClient.createPaciente(data);
-      setPacientes(prev => [newPaciente, ...prev]);
+      // Refresh current page
+      fetchPacientes();
       
       toast.success('✅ Paciente cadastrado com sucesso!', {
         description: `${data.nome} foi adicionado ao sistema.`,
@@ -76,9 +100,8 @@ export function Pacientes() {
 
     try {
       const updatedPaciente = await apiClient.updatePaciente(editingPaciente.id, data);
-      setPacientes(prev => 
-        prev.map(p => p.id === editingPaciente.id ? updatedPaciente : p)
-      );
+      // Refresh current page
+      fetchPacientes();
       
       toast.success('✅ Paciente atualizado com sucesso!', {
         description: `Dados de ${data.nome} foram atualizados.`,
@@ -106,7 +129,8 @@ export function Pacientes() {
     try {
       setDeleting(true);
       await apiClient.deletePaciente(pacienteToDelete.id);
-      setPacientes(prev => prev.filter(p => p.id !== pacienteToDelete.id));
+      // Refresh current page
+      fetchPacientes();
       
       toast.success('✅ Paciente removido com sucesso!', {
         description: `${pacienteToDelete.nome} foi removido do sistema.`,
@@ -144,12 +168,14 @@ export function Pacientes() {
     setPacienteToDelete(null);
   };
 
-  const filteredPacientes = pacientes.filter(paciente =>
-    paciente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    paciente.cpf.includes(searchTerm) ||
-    paciente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    paciente.telefone.includes(searchTerm)
-  );
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(0);
+  };
 
   const formatCPF = (cpf: string) => {
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -179,7 +205,7 @@ export function Pacientes() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Pacientes</h1>
           <p className="text-gray-600 mt-2">
-            Gerencie o cadastro de pacientes ({pacientes.length} cadastrados)
+            Gerencie o cadastro de pacientes ({pacientesPage.totalElements} cadastrados)
           </p>
         </div>
         <button
@@ -218,7 +244,7 @@ export function Pacientes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredPacientes.map((paciente) => (
+              {pacientesPage.content.map((paciente) => (
                 <tr key={paciente.id} className="hover:bg-gray-50">
                   <td className="py-4 px-4">
                     <div>
@@ -278,7 +304,7 @@ export function Pacientes() {
             </tbody>
           </table>
 
-          {filteredPacientes.length === 0 && (
+          {pacientesPage.content.length === 0 && !loading && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg mb-2">
@@ -296,6 +322,18 @@ export function Pacientes() {
             </div>
           )}
         </div>
+
+        {/* Paginação */}
+        {pacientesPage.totalElements > 0 && (
+          <Pagination
+            currentPage={pacientesPage.page}
+            totalPages={pacientesPage.totalPages}
+            totalElements={pacientesPage.totalElements}
+            pageSize={pacientesPage.size}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
       </div>
 
       {/* Modal de Cadastro/Edição */}

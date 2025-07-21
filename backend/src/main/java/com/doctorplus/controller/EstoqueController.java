@@ -2,12 +2,16 @@ package com.doctorplus.controller;
 
 import com.doctorplus.dto.request.EstoqueCreateRequest;
 import com.doctorplus.dto.response.EstoqueResponse;
+import com.doctorplus.dto.response.PageResponse;
 import com.doctorplus.service.EstoqueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -54,9 +58,17 @@ public class EstoqueController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Listar todos os itens", description = "Retorna lista de todos os itens ativos do estoque")
-    public ResponseEntity<List<EstoqueResponse>> listarTodos() {
-        List<EstoqueResponse> response = estoqueService.listarTodos();
+    @Operation(summary = "Listar itens paginados", description = "Retorna lista paginada de itens do estoque")
+    public ResponseEntity<PageResponse<EstoqueResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "nome") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        
+        PageResponse<EstoqueResponse> response = estoqueService.listarTodos(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -86,9 +98,14 @@ public class EstoqueController {
 
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL') or hasRole('SECRETARIO')")
-    @Operation(summary = "Buscar itens", description = "Busca itens por nome, código ou categoria")
-    public ResponseEntity<List<EstoqueResponse>> buscarPorTermo(@RequestParam String termo) {
-        List<EstoqueResponse> response = estoqueService.buscarPorTermo(termo);
+    @Operation(summary = "Buscar itens paginados", description = "Busca itens por nome, código ou categoria com paginação")
+    public ResponseEntity<PageResponse<EstoqueResponse>> buscarPorTermo(
+            @RequestParam String termo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
+        PageResponse<EstoqueResponse> response = estoqueService.buscarPorTermo(termo, pageable);
         return ResponseEntity.ok(response);
     }
 

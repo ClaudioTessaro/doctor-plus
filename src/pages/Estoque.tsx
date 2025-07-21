@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Package, AlertTriangle, TrendingDown, Edit, Calculator, Eye, Trash2, Loader2 } from 'lucide-react';
-import { apiClient, EstoqueResponse } from '../lib/api';
+import { apiClient, EstoqueResponse, PageResponse } from '../lib/api';
 import { EstoqueModal } from '../components/Estoque/EstoqueModal';
 import { AjusteQuantidadeModal } from '../components/Estoque/AjusteQuantidadeModal';
 import { ConfirmDialog } from '../components/Pacientes/ConfirmDialog';
+import { Pagination } from '../components/Common/Pagination';
 import toast from 'react-hot-toast';
 
 interface EstoqueFormData {
@@ -18,9 +19,20 @@ interface EstoqueFormData {
 }
 
 export function Estoque() {
-  const [estoque, setEstoque] = useState<EstoqueResponse[]>([]);
+  const [estoquePage, setEstoquePage] = useState<PageResponse<EstoqueResponse>>({
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+    first: true,
+    last: true,
+    empty: true
+  });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [filterCategoria, setFilterCategoria] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   
@@ -35,13 +47,24 @@ export function Estoque() {
 
   useEffect(() => {
     fetchEstoque();
-  }, []);
+  }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    // Reset page when search term changes
+    setCurrentPage(0);
+    fetchEstoque();
+  }, [searchTerm]);
 
   const fetchEstoque = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getEstoque();
-      setEstoque(data);
+      let data;
+      if (searchTerm.trim()) {
+        data = await apiClient.searchEstoquePaginated(searchTerm, currentPage, pageSize);
+      } else {
+        data = await apiClient.getEstoque(currentPage, pageSize);
+      }
+      setEstoquePage(data);
     } catch (error: any) {
       console.error('Error fetching estoque:', error);
       toast.error('📦 Erro ao carregar estoque', {
@@ -55,7 +78,8 @@ export function Estoque() {
   const handleCreateItem = async (data: EstoqueFormData) => {
     try {
       const newItem = await apiClient.createEstoqueItem(data);
-      setEstoque(prev => [newItem, ...prev]);
+      // Refresh current page
+      fetchEstoque();
       
       toast.success('📦 Item cadastrado com sucesso!', {
         description: `${data.nome} foi adicionado ao estoque com ${data.quantidade} ${data.unidade}.`,
@@ -80,9 +104,8 @@ export function Estoque() {
 
     try {
       const updatedItem = await apiClient.updateEstoqueItem(editingItem.id, data);
-      setEstoque(prev => 
-        prev.map(item => item.id === editingItem.id ? updatedItem : item)
-      );
+      // Refresh current page
+      fetchEstoque();
       
       toast.success('✅ Item atualizado com sucesso!', {
         description: `Dados de ${data.nome} foram atualizados.`,
@@ -126,9 +149,8 @@ export function Estoque() {
           throw new Error('Tipo de operação inválido');
       }
 
-      setEstoque(prev => 
-        prev.map(item => item.id === itemParaAjuste.id ? updatedItem : item)
-      );
+      // Refresh current page
+      fetchEstoque();
 
       const operacaoTexto = {
         adicionar: 'adicionadas',
@@ -161,7 +183,8 @@ export function Estoque() {
       setDeleting(true);
       await apiClient.desativarEstoqueItem(itemToDelete.id);
       
-      setEstoque(prev => prev.filter(item => item.id !== itemToDelete.id));
+      // Refresh current page
+      fetchEstoque();
       
       toast.success('✅ Item removido com sucesso!', {
         description: `${itemToDelete.nome} foi removido do estoque.`,
@@ -209,23 +232,17 @@ export function Estoque() {
     setItemToDelete(null);
   };
 
-  const filteredEstoque = estoque.filter(item => {
-    const matchSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       (item.categoria && item.categoria.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchCategoria = !filterCategoria || item.categoria === filterCategoria;
-    
-    const matchStatus = !filterStatus || 
-      (filterStatus === 'baixo' && item.estoqueBaixo) ||
-      (filterStatus === 'esgotado' && item.esgotado) ||
-      (filterStatus === 'disponivel' && !item.estoqueBaixo && !item.esgotado);
-    
-    return matchSearch && matchCategoria && matchStatus;
-  });
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-  const categorias = [...new Set(estoque.map(item => item.categoria).filter(Boolean))];
-  const itensEmAlerta = estoque.filter(item => item.estoqueBaixo || item.esgotado);
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(0);
+  };
+
+  const categorias = [...new Set(estoquePage.content.map(item => item.categoria).filter(Boolean))];
+  const itensEmAlerta = estoquePage.content.filter(item => item.estoqueBaixo || item.esgotado);
   
   const getStatusColor = (item: EstoqueResponse) => {
     if (item.esgotado) return 'text-red-600 bg-red-50 border-red-200';
@@ -256,7 +273,7 @@ export function Estoque() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Estoque</h1>
           <p className="text-gray-600 mt-2">
-            Controle de medicamentos e produtos ({estoque.length} itens)
+            Controle de medicamentos e produtos ({estoquePage.totalElements} itens)
           </p>
         </div>
         <button
@@ -335,7 +352,7 @@ export function Estoque() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredEstoque.map((item) => {
+              {estoquePage.content.map((item) => {
                 const status = getStatusText(item);
                 return (
                   <tr key={item.id} className="hover:bg-gray-50">
@@ -410,13 +427,14 @@ export function Estoque() {
             </tbody>
           </table>
 
-          {filteredEstoque.length === 0 && (
+          {estoquePage.content.length === 0 && !loading && (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg mb-2">
-                {searchTerm || filterCategoria || filterStatus ? 'Nenhum item encontrado' : 'Nenhum item no estoque'}
+                {searchTerm ? 'Nenhum item encontrado' : 'Nenhum item no estoque'}
               </p>
               {searchTerm || filterCategoria || filterStatus ? (
+              {searchTerm ? (
                 <p className="text-gray-400 text-sm">
                   Tente ajustar os filtros de busca
                 </p>
@@ -428,6 +446,18 @@ export function Estoque() {
             </div>
           )}
         </div>
+
+        {/* Paginação */}
+        {estoquePage.totalElements > 0 && (
+          <Pagination
+            currentPage={estoquePage.page}
+            totalPages={estoquePage.totalPages}
+            totalElements={estoquePage.totalElements}
+            pageSize={estoquePage.size}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
       </div>
 
       {/* Modal de Cadastro/Edição */}

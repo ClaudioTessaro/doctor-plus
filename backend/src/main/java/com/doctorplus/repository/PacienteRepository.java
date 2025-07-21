@@ -1,6 +1,8 @@
 package com.doctorplus.repository;
 
 import com.doctorplus.domain.entity.Paciente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,7 +28,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, UUID> {
            "LOWER(p.nome) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
            "p.cpf LIKE CONCAT('%', :termo, '%') OR " +
            "LOWER(p.email) LIKE LOWER(CONCAT('%', :termo, '%'))")
-    List<Paciente> buscarPorTermo(@Param("termo") String termo);
+    Page<Paciente> buscarPorTermo(@Param("termo") String termo, Pageable pageable);
 
     @Query("SELECT COUNT(p) FROM Paciente p")
     Long countTotalPacientes();

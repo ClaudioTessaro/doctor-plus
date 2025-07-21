@@ -5,6 +5,7 @@ import com.doctorplus.domain.entity.Paciente;
 import com.doctorplus.domain.entity.Profissional;
 import com.doctorplus.dto.request.HistoricoCreateRequest;
 import com.doctorplus.dto.response.HistoricoResponse;
+import com.doctorplus.dto.response.PageResponse;
 import com.doctorplus.exception.BusinessException;
 import com.doctorplus.exception.ResourceNotFoundException;
 import com.doctorplus.mapper.HistoricoMapper;
@@ -14,6 +15,8 @@ import com.doctorplus.repository.ProfissionalRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,9 +74,15 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public List<HistoricoResponse> listarTodos() {
-        List<Historico> historicos = historicoRepository.findAllByOrderByDataConsultaDesc();
-        return historicoMapper.toResponseList(historicos);
+    public PageResponse<HistoricoResponse> listarTodos(Pageable pageable) {
+        Page<Historico> historicosPage = historicoRepository.findAll(pageable);
+        List<HistoricoResponse> historicos = historicoMapper.toResponseList(historicosPage.getContent());
+        return new PageResponse<>(
+            historicos,
+            historicosPage.getNumber(),
+            historicosPage.getSize(),
+            historicosPage.getTotalElements()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -89,8 +98,20 @@ public class HistoricoService {
     }
 
     @Transactional(readOnly = true)
-    public List<HistoricoResponse> buscarPorTermo(String termo) {
-        List<Historico> historicos = historicoRepository.buscarPorTermo(termo);
+    public PageResponse<HistoricoResponse> buscarPorTermo(String termo, Pageable pageable) {
+        Page<Historico> historicosPage = historicoRepository.buscarPorTermo(termo, pageable);
+        List<HistoricoResponse> historicos = historicoMapper.toResponseList(historicosPage.getContent());
+        return new PageResponse<>(
+            historicos,
+            historicosPage.getNumber(),
+            historicosPage.getSize(),
+            historicosPage.getTotalElements()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoResponse> listarTodosSimples() {
+        List<Historico> historicos = historicoRepository.findAllByOrderByDataConsultaDesc();
         return historicoMapper.toResponseList(historicos);
     }
 
