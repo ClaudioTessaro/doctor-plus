@@ -218,8 +218,32 @@ class ApiClient {
     return this.request<HistoricoResponse[]>('/historicos');
   }
 
+  async createHistorico(data: HistoricoCreateRequest) {
+    return this.request<HistoricoResponse>('/historicos', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateHistorico(id: string, data: HistoricoCreateRequest) {
+    return this.request<HistoricoResponse>(`/historicos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteHistorico(id: string) {
+    return this.request(`/historicos/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getHistoricosByPaciente(pacienteId: string) {
     return this.request<HistoricoResponse[]>(`/historicos/paciente/${pacienteId}`);
+  }
+
+  async searchHistoricos(termo: string) {
+    return this.request<HistoricoResponse[]>(`/historicos/buscar?termo=${encodeURIComponent(termo)}`);
   }
 
   // Profissionais endpoints
@@ -340,6 +364,14 @@ export interface HistoricoResponse {
   prescricao?: string;
   dataConsulta: string;
   createdAt: string;
+}
+
+export interface HistoricoCreateRequest {
+  pacienteId: string;
+  descricao: string;
+  diagnostico?: string;
+  prescricao?: string;
+  dataConsulta: string;
 }
 
 export interface ProfissionalResponse {
