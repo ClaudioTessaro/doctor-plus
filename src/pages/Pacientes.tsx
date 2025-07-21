@@ -22,7 +22,9 @@ export function Pacientes() {
       setPacientes(data);
     } catch (error) {
       console.error('Error fetching pacientes:', error);
-      toast.error('Erro ao carregar pacientes');
+      toast.error('📋 Erro ao carregar pacientes', {
+        description: 'Não foi possível carregar a lista de pacientes.',
+      });
     } finally {
       setLoading(false);
     }

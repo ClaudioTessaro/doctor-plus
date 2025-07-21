@@ -20,7 +20,9 @@ export function Estoque() {
       setEstoque(data);
     } catch (error) {
       console.error('Error fetching estoque:', error);
-      toast.error('Erro ao carregar estoque');
+      toast.error('📦 Erro ao carregar estoque', {
+        description: 'Não foi possível carregar os itens do estoque.',
+      });
     } finally {
       setLoading(false);
     }

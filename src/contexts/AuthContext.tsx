@@ -51,9 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const response = await apiClient.register(userData);
-      toast.success('Cadastro realizado com sucesso!');
+      toast.success('✅ Cadastro realizado com sucesso!', {
+        description: 'Você pode fazer login agora com suas credenciais.',
+      });
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error('❌ Erro no cadastro', {
+        description: error.message || 'Verifique os dados e tente novamente.',
+      });
       throw error;
     }
   };
@@ -67,12 +71,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('userData', JSON.stringify(response.usuario));
       setUser(response.usuario);
       
-      toast.success('Login realizado com sucesso!');
+      toast.success(`👋 Bem-vindo, ${response.usuario.nome}!`, {
+        description: 'Redirecionando para o dashboard...',
+      });
       
       // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error('🔒 Falha na autenticação', {
+        description: error.message || 'Verifique suas credenciais e tente novamente.',
+      });
       throw error;
     }
   };
@@ -84,12 +92,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('userData');
       setUser(null);
       
-      toast.success('Logout realizado com sucesso!');
+      toast.success('👋 Até logo!', {
+        description: 'Logout realizado com sucesso.',
+      });
       
       // Redirect to login page
       navigate('/login');
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error('❌ Erro no logout', {
+        description: error.message || 'Tente novamente.',
+      });
       throw error;
     }
   };

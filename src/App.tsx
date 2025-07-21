@@ -49,21 +49,55 @@ function App() {
           <Toaster
             position="top-right"
             toastOptions={{
-              duration: 4000,
+              duration: 5000,
+              className: 'toast-custom',
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: '#ffffff',
+                color: '#1f2937',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                padding: '16px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                maxWidth: '400px',
               },
               success: {
-                duration: 3000,
+                duration: 4000,
                 style: {
-                  background: '#10b981',
+                  background: '#f0fdf4',
+                  color: '#166534',
+                  border: '1px solid #bbf7d0',
+                  boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.1), 0 4px 6px -2px rgba(34, 197, 94, 0.05)',
+                },
+                iconTheme: {
+                  primary: '#22c55e',
+                  secondary: '#f0fdf4',
                 },
               },
               error: {
-                duration: 5000,
+                duration: 6000,
                 style: {
-                  background: '#ef4444',
+                  background: '#fef2f2',
+                  color: '#991b1b',
+                  border: '1px solid #fecaca',
+                  boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.1), 0 4px 6px -2px rgba(239, 68, 68, 0.05)',
+                },
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fef2f2',
+                },
+              },
+              loading: {
+                style: {
+                  background: '#fefbf3',
+                  color: '#92400e',
+                  border: '1px solid #fed7aa',
+                  boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05)',
+                },
+                iconTheme: {
+                  primary: '#f59e0b',
+                  secondary: '#fefbf3',
                 },
               },
             }}

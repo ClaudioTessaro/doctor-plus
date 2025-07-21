@@ -38,6 +38,9 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true);
     try {
+      toast.loading('📝 Criando conta...', {
+        description: 'Processando seu cadastro.',
+      });
       await signUp({
         nome: data.nome,
         email: data.email,
@@ -54,6 +57,7 @@ export function RegisterForm() {
       // Error handled by auth context
     } finally {
       setLoading(false);
+      toast.dismiss();
     }
   };
 
