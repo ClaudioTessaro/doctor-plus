@@ -39,6 +39,9 @@ public class Profissional {
     @OneToMany(mappedBy = "profissional", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Receita> receitas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "profissional", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Estoque> estoques = new ArrayList<>();
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -115,6 +118,14 @@ public class Profissional {
 
     public void setReceitas(List<Receita> receitas) {
         this.receitas = receitas;
+    }
+
+    public List<Estoque> getEstoques() {
+        return estoques;
+    }
+
+    public void setEstoques(List<Estoque> estoques) {
+        this.estoques = estoques;
     }
 
     public LocalDateTime getCreatedAt() {

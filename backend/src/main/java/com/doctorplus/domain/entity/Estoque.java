@@ -43,6 +43,10 @@ public class Estoque {
     @Column(nullable = false)
     private Boolean ativo = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profissional_id")
+    private Profissional profissional;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -150,6 +154,14 @@ public class Estoque {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public Profissional getProfissional() {
+        return profissional;
+    }
+
+    public void setProfissional(Profissional profissional) {
+        this.profissional = profissional;
     }
 
     public LocalDateTime getCreatedAt() {
