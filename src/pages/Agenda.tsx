@@ -614,26 +614,10 @@ export function Agenda() {
                         >
                           <Edit className="h-4 w-4" />
                         </button>
-                        <div className="relative group">
-                          <button className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
-                            <span className="text-sm">●●●</span>
-                          </button>
-                          <StatusDropdown 
-                            consulta={consulta}
-                            onStatusChange={handleAlterarStatus}
-                            className="absolute right-0 top-10 hidden group-hover:block z-10"
-                          />
-                        </div>
-                        <div className="relative group">
-                          <button className="p-1 text-purple-600 hover:bg-purple-100 rounded transition-colors">
-                            <span className="text-xs">●●●</span>
-                          </button>
-                          <StatusDropdown 
-                            consulta={consulta}
-                            onStatusChange={handleAlterarStatus}
-                            className="absolute right-0 top-8 hidden group-hover:block"
-                          />
-                        </div>
+                        <StatusDropdown 
+                          consulta={consulta}
+                          onStatusChange={handleAlterarStatus}
+                        />
                         <button
                           onClick={() => openDeleteDialog(consulta)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
