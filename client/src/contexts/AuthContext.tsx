@@ -58,8 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.register(userData);
       
       toast.dismiss('signup-loading');
-      toast.success('🎉 Conta criada com sucesso!', {
-        description: `Bem-vindo(a), ${userData.nome}! Você já pode fazer login com suas credenciais.`,
+      toast.success(`🎉 Conta criada com sucesso! Bem-vindo(a), ${userData.nome}! Você já pode fazer login.`, {
         duration: 6000,
       });
     } catch (error: any) {
@@ -67,9 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.error('Signup error details:', error);
       
-      toast.error('❌ Erro no Cadastro', {
-        description: error.message || 'Verifique os dados fornecidos e tente novamente.',
-      });
+      toast.error(`❌ Erro no Cadastro: ${error.message || 'Verifique os dados fornecidos e tente novamente.'}`);
       throw error;
     }
   };
@@ -80,26 +77,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const response = await apiClient.login(email, password);
       
-      // Store token and user data
-      apiClient.setToken(response.token);
-      localStorage.setItem('userData', JSON.stringify(response.usuario));
-      setUser(response.usuario);
+      console.log('Login response:', response);
       
-      toast.dismiss(loadingToast);
-      toast.success(`🎉 Bem-vindo de volta, ${response.usuario.nome}!`, {
-        description: `Login realizado com sucesso. Redirecionando para o dashboard...`,
-      });
-      
-      // Redirect to dashboard after successful login
-      navigate('/dashboard');
+      // Store token and user data first
+      if (response.token) {
+        apiClient.setToken(response.token);
+        localStorage.setItem('userData', JSON.stringify(response.usuario));
+        
+        // Update user state
+        setUser(response.usuario);
+        
+        toast.dismiss(loadingToast);
+        toast.success(`🎉 Bem-vindo de volta, ${response.usuario.nome}! Redirecionando...`);
+        
+        // Small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
+      } else {
+        throw new Error('Token não recebido do servidor');
+      }
     } catch (error: any) {
       toast.dismiss(); // Remove qualquer toast ativo
       
       console.error('Login error details:', error);
       
-      toast.error('🔒 Falha na Autenticação', {
-        description: error.message || 'Verifique seu email e senha.'
-      });
+      toast.error(`🔒 Falha na Autenticação: ${error.message || 'Verifique seu email e senha.'}`);
       throw error;
     }
   };
@@ -116,8 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       
       toast.dismiss('signout-loading');
-      toast.success('👋 Até logo!', {
-        description: 'Logout realizado com sucesso. Esperamos vê-lo novamente em breve!',
+      toast.success('👋 Até logo! Logout realizado com sucesso.', {
         duration: 4000,
       });
       
@@ -125,8 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       navigate('/login');
     } catch (error: any) {
       toast.dismiss('signout-loading');
-      toast.error('❌ Erro no Logout', {
-        description: `${error.message || 'Ocorreu um erro inesperado. Tente novamente.'}`,
+      toast.error(`❌ Erro no Logout: ${error.message || 'Ocorreu um erro inesperado. Tente novamente.'}`, {
         duration: 6000,
       });
       throw error;
