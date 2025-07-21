@@ -99,6 +99,16 @@ export function LoginForm() {
           </form>
 
           <div className="mt-6 text-center">
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-semibold text-blue-900 mb-2">Acesso de Administrador</h4>
+              <p className="text-sm text-blue-700 mb-2">
+                <strong>Email:</strong> admin@doctorplus.com<br />
+                <strong>Senha:</strong> admin123
+              </p>
+              <p className="text-xs text-blue-600">
+                Altere a senha após o primeiro login
+              </p>
+            </div>
             <span className="text-gray-600">Não tem uma conta? </span>
             <Link
               to="/cadastro"
