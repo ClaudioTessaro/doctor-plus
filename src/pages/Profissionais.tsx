@@ -8,6 +8,16 @@ export function Profissionais() {
   const [profissionais, setProfissionais] = useState<ProfissionalResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchProfissionais();
@@ -25,9 +35,9 @@ export function Profissionais() {
   };
 
   const filteredProfissionais = profissionais.filter(profissional =>
-    profissional.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profissional.especialidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profissional.crm.toLowerCase().includes(searchTerm.toLowerCase())
+    profissional.usuario.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    profissional.especialidade.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    profissional.crm.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   if (loading) {
