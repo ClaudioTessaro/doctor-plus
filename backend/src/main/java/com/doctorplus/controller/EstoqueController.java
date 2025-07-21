@@ -155,4 +155,20 @@ public class EstoqueController {
         estoqueService.ativarItem(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/estatisticas/total")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
+    @Operation(summary = "Total de itens", description = "Retorna o número total de itens no estoque")
+    public ResponseEntity<Long> contarTotalItens() {
+        Long total = estoqueService.contarTotalItens();
+        return ResponseEntity.ok(total);
+    }
+
+    @GetMapping("/estatisticas/alertas")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFISSIONAL')")
+    @Operation(summary = "Total de alertas", description = "Retorna o número de itens com estoque baixo")
+    public ResponseEntity<Long> contarItensComAlerta() {
+        Long total = estoqueService.contarItensComEstoqueBaixo();
+        return ResponseEntity.ok(total);
+    }
 }

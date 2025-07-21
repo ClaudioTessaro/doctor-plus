@@ -205,6 +205,30 @@ class ApiClient {
     });
   }
 
+  async ajustarQuantidadeEstoque(id: string, quantidade: number) {
+    return this.request<EstoqueResponse>(`/estoque/${id}/quantidade?quantidade=${quantidade}`, {
+      method: 'PATCH',
+    });
+  }
+
+  async adicionarQuantidadeEstoque(id: string, quantidade: number) {
+    return this.request<EstoqueResponse>(`/estoque/${id}/adicionar?quantidade=${quantidade}`, {
+      method: 'PATCH',
+    });
+  }
+
+  async removerQuantidadeEstoque(id: string, quantidade: number) {
+    return this.request<EstoqueResponse>(`/estoque/${id}/remover?quantidade=${quantidade}`, {
+      method: 'PATCH',
+    });
+  }
+
+  async desativarEstoqueItem(id: string) {
+    return this.request(`/estoque/${id}/desativar`, {
+      method: 'PATCH',
+    });
+  }
+
   async getEstoqueBaixo() {
     return this.request<EstoqueResponse[]>('/estoque/alertas/baixo');
   }

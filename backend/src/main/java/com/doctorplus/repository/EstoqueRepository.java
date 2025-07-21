@@ -38,4 +38,6 @@ public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
 
     @Query("SELECT COUNT(e) FROM Estoque e WHERE e.ativo = true AND e.quantidade <= e.minAlerta")
     Long countItensComEstoqueBaixo();
+
+    Long countByAtivoTrue();
 }

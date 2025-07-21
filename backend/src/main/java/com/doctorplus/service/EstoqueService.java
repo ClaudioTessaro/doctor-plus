@@ -188,6 +188,11 @@ public class EstoqueService {
         return estoqueRepository.countItensComEstoqueBaixo();
     }
 
+    @Transactional(readOnly = true)
+    public Long contarTotalItens() {
+        return estoqueRepository.countByAtivoTrue();
+    }
+
     private void validarCodigoUnico(String codigo) {
         if (estoqueRepository.existsByCodigo(codigo)) {
             throw new BusinessException("Código já está em uso");
