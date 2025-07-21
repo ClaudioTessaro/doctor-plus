@@ -23,6 +23,16 @@ export function VinculoProfissionalModal({
 }: VinculoProfissionalModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleVincular = async (profissionalId: string) => {
     setSubmitting(true);
@@ -52,9 +62,9 @@ export function VinculoProfissionalModal({
   );
 
   const filteredProfissionais = profissionaisNaoVinculados.filter(prof =>
-    prof.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prof.especialidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prof.crm.toLowerCase().includes(searchTerm.toLowerCase())
+    prof.usuario.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    prof.especialidade.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    prof.crm.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   if (!isOpen) return null;

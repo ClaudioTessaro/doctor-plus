@@ -33,6 +33,7 @@ export function Prontuarios() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [selectedPaciente, setSelectedPaciente] = useState<string>('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -42,6 +43,15 @@ export function Prontuarios() {
   const [deleting, setDeleting] = useState(false);
   const [expandedHistorico, setExpandedHistorico] = useState<string | null>(null);
 
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchData();
   }, [currentPage, pageSize]);
@@ -50,7 +60,7 @@ export function Prontuarios() {
     // Reset page when search term changes
     setCurrentPage(0);
     fetchData();
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   const fetchData = async () => {
     try {
@@ -74,8 +84,8 @@ export function Prontuarios() {
   };
 
   const fetchHistoricos = async () => {
-    if (searchTerm.trim()) {
-      return await apiClient.searchHistoricosPaginated(searchTerm, currentPage, pageSize);
+    if (debouncedSearchTerm.trim()) {
+      return await apiClient.searchHistoricosPaginated(debouncedSearchTerm, currentPage, pageSize);
     } else {
       return await apiClient.getHistoricos(currentPage, pageSize);
     }

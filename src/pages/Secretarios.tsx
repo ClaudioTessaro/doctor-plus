@@ -20,6 +20,7 @@ export function Secretarios() {
   const [profissionais, setProfissionais] = useState<ProfissionalResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -29,6 +30,15 @@ export function Secretarios() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [secretarioToDelete, setSecretarioToDelete] = useState<SecretarioResponse | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
@@ -234,8 +244,8 @@ export function Secretarios() {
   };
 
   const filteredSecretarios = secretarios.filter(secretario =>
-    secretario.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    secretario.usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
+    secretario.usuario.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    secretario.usuario.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   if (loading) {

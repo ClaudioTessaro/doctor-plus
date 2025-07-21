@@ -27,6 +27,7 @@ export function Agenda() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -34,6 +35,15 @@ export function Agenda() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [consultaToDelete, setConsultaToDelete] = useState<ConsultaResponse | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Debounce do termo de busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
@@ -318,8 +328,8 @@ export function Agenda() {
   };
 
   const filteredConsultas = consultas.filter(consulta => {
-    const matchSearch = consulta.paciente?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       consulta.profissional?.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = consulta.paciente?.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+                       consulta.profissional?.usuario.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
     const matchStatus = !statusFilter || consulta.status === statusFilter;
     return matchSearch && matchStatus;
   });
