@@ -35,6 +35,14 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     @Query("SELECT COUNT(p) FROM Paciente p WHERE p.createdAt BETWEEN :inicio AND :fim")
     Long countPacientesNovos(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 
+    @Query("SELECT COUNT(p) FROM Paciente p WHERE p.id IN :pacienteIds")
+    Long countAccessiblePacientes(@Param("pacienteIds") List<Long> pacienteIds);
+
+    @Query("SELECT COUNT(p) FROM Paciente p WHERE p.createdAt BETWEEN :inicio AND :fim AND p.id IN :pacienteIds")
+    Long countAccessiblePacientesNovos(@Param("inicio") LocalDateTime inicio, 
+                                      @Param("fim") LocalDateTime fim, 
+                                      @Param("pacienteIds") List<Long> pacienteIds);
+
     // Métodos para controle de acesso
     @Query("SELECT p FROM Paciente p WHERE " +
            "(:pacienteIds IS NULL OR p.id IN :pacienteIds)")

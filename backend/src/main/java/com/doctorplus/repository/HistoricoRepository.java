@@ -28,6 +28,9 @@ public interface HistoricoRepository extends JpaRepository<Historico, Long> {
     @Query("SELECT COUNT(h) FROM Historico h")
     Long countTotalHistoricos();
 
+    @Query("SELECT COUNT(h) FROM Historico h WHERE h.profissional.id IN :profissionalIds")
+    Long countAccessibleHistoricos(@Param("profissionalIds") List<Long> profissionalIds);
+
     // Métodos para controle de acesso
     @Query("SELECT h FROM Historico h WHERE " +
            "(:profissionalIds IS NULL OR h.profissional.id IN :profissionalIds)")

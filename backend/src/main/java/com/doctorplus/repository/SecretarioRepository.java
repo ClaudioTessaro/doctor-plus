@@ -31,6 +31,9 @@ public interface SecretarioRepository extends JpaRepository<Secretario, Long> {
     @Query("SELECT COUNT(s) FROM Secretario s WHERE s.usuario.ativo = true")
     Long countTotalSecretarios();
 
+    @Query("SELECT COUNT(s) FROM Secretario s WHERE s.usuario.ativo = true AND s.id IN :secretarioIds")
+    Long countAccessibleSecretarios(@Param("secretarioIds") List<Long> secretarioIds);
+
     // Métodos para controle de acesso
     @Query("SELECT s FROM Secretario s WHERE " +
            "s.usuario.ativo = true AND " +
