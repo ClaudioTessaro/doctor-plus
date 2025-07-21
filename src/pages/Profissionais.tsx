@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Stethoscope, Mail, Calendar, Edit } from 'lucide-react';
-import { supabase, Profissional } from '../lib/supabase';
+import { apiClient, ProfissionalResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function Profissionais() {
-  const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+  const [profissionais, setProfissionais] = useState<ProfissionalResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -15,16 +15,8 @@ export function Profissionais() {
 
   const fetchProfissionais = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profissionais')
-        .select(`
-          *,
-          usuario:usuarios(*)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProfissionais(data || []);
+      const data = await apiClient.getProfissionais();
+      setProfissionais(data);
     } catch (error) {
       console.error('Error fetching profissionais:', error);
     } finally {
@@ -33,7 +25,7 @@ export function Profissionais() {
   };
 
   const filteredProfissionais = profissionais.filter(profissional =>
-    profissional.usuario?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    profissional.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     profissional.especialidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
     profissional.crm.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -86,7 +78,7 @@ export function Profissionais() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">
-                      Dr. {profissional.usuario?.nome}
+                      Dr. {profissional.usuario.nome}
                     </h3>
                     <p className="text-blue-600 font-medium mt-1">
                       {profissional.especialidade}
@@ -98,20 +90,20 @@ export function Profissionais() {
                     <div className="flex items-center space-x-4 mt-3">
                       <div className="flex items-center text-sm text-gray-500">
                         <Mail className="h-4 w-4 mr-1" />
-                        {profissional.usuario?.email}
+                        {profissional.usuario.email}
                       </div>
                       <div className="flex items-center text-sm text-gray-500">
                         <Calendar className="h-4 w-4 mr-1" />
-                        Desde {format(new Date(profissional.created_at), 'MM/yyyy', { locale: ptBR })}
+                        Desde {format(new Date(profissional.createdAt), 'MM/yyyy', { locale: ptBR })}
                       </div>
                     </div>
 
                     <span className={`inline-block px-3 py-1 text-sm rounded-full mt-3 ${
-                      profissional.usuario?.ativo 
+                      profissional.usuario.ativo 
                         ? 'bg-green-100 text-green-700' 
                         : 'bg-red-100 text-red-700'
                     }`}>
-                      {profissional.usuario?.ativo ? 'Ativo' : 'Inativo'}
+                      {profissional.usuario.ativo ? 'Ativo' : 'Inativo'}
                     </span>
                   </div>
                 </div>

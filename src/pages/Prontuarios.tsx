@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FileText, Search, Plus, Eye, Calendar, User } from 'lucide-react';
-import { supabase, Historico } from '../lib/supabase';
+import { apiClient, HistoricoResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function Prontuarios() {
-  const [historicos, setHistoricos] = useState<Historico[]>([]);
+  const [historicos, setHistoricos] = useState<HistoricoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -15,17 +15,8 @@ export function Prontuarios() {
 
   const fetchHistoricos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('historicos')
-        .select(`
-          *,
-          paciente:pacientes(*),
-          profissional:profissionais(*, usuario:usuarios(*))
-        `)
-        .order('data_consulta', { ascending: false });
-
-      if (error) throw error;
-      setHistoricos(data || []);
+      const data = await apiClient.getHistoricos();
+      setHistoricos(data);
     } catch (error) {
       console.error('Error fetching historicos:', error);
     } finally {
@@ -92,11 +83,11 @@ export function Prontuarios() {
                     <div className="flex items-center text-sm text-gray-500 space-x-4">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {format(new Date(historico.data_consulta), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                        {format(new Date(historico.dataConsulta), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                       </div>
                       <div className="flex items-center">
                         <User className="h-4 w-4 mr-1" />
-                        Dr. {historico.profissional?.usuario?.nome}
+                        Dr. {historico.profissional?.usuario.nome}
                       </div>
                     </div>
                   </div>
@@ -135,7 +126,7 @@ export function Prontuarios() {
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                 <div className="text-xs text-gray-500">
-                  Criado em {format(new Date(historico.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                  Criado em {format(new Date(historico.createdAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">

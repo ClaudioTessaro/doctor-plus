@@ -1,29 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Users, UserCheck, Edit } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-
-interface SecretarioData {
-  id: string;
-  usuario: {
-    id: string;
-    nome: string;
-    email: string;
-    ativo: boolean;
-  };
-  profissionais: {
-    id: string;
-    profissional: {
-      id: string;
-      especialidade: string;
-      usuario: {
-        nome: string;
-      };
-    };
-  }[];
-}
+import { apiClient, SecretarioResponse } from '../lib/api';
 
 export function Secretarios() {
-  const [secretarios, setSecretarios] = useState<SecretarioData[]>([]);
+  const [secretarios, setSecretarios] = useState<SecretarioResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -33,23 +13,8 @@ export function Secretarios() {
 
   const fetchSecretarios = async () => {
     try {
-      const { data, error } = await supabase
-        .from('secretarios')
-        .select(`
-          id,
-          usuario:usuarios(*),
-          profissionais:secretario_profissionais(
-            id,
-            profissional:profissionais(
-              id,
-              especialidade,
-              usuario:usuarios(nome)
-            )
-          )
-        `);
-
-      if (error) throw error;
-      setSecretarios(data || []);
+      const data = await apiClient.getSecretarios();
+      setSecretarios(data);
     } catch (error) {
       console.error('Error fetching secretarios:', error);
     } finally {
@@ -141,7 +106,7 @@ export function Secretarios() {
                         className="bg-blue-50 border border-blue-200 rounded-lg p-3"
                       >
                         <div className="font-medium text-blue-900">
-                          Dr. {vinculo.profissional.usuario.nome}
+                          Dr. {vinculo.profissional.usuario?.nome}
                         </div>
                         <div className="text-sm text-blue-700">
                           {vinculo.profissional.especialidade}

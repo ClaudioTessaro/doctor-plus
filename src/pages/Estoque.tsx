@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Package, AlertTriangle, TrendingDown, Edit } from 'lucide-react';
-import { supabase, EstoqueItem } from '../lib/supabase';
+import { apiClient, EstoqueResponse } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export function Estoque() {
-  const [estoque, setEstoque] = useState<EstoqueItem[]>([]);
+  const [estoque, setEstoque] = useState<EstoqueResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState('');
@@ -16,14 +16,8 @@ export function Estoque() {
 
   const fetchEstoque = async () => {
     try {
-      const { data, error } = await supabase
-        .from('estoque')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome', { ascending: true });
-
-      if (error) throw error;
-      setEstoque(data || []);
+      const data = await apiClient.getEstoque();
+      setEstoque(data);
     } catch (error) {
       console.error('Error fetching estoque:', error);
       toast.error('Erro ao carregar estoque');
@@ -41,17 +35,17 @@ export function Estoque() {
 
   const categorias = [...new Set(estoque.map(item => item.categoria).filter(Boolean))];
   
-  const itensEmAlerta = estoque.filter(item => item.quantidade <= item.min_alerta);
+  const itensEmAlerta = estoque.filter(item => item.estoqueBaixo);
   
-  const getStatusColor = (item: EstoqueItem) => {
-    if (item.quantidade === 0) return 'text-red-600 bg-red-50';
-    if (item.quantidade <= item.min_alerta) return 'text-yellow-600 bg-yellow-50';
+  const getStatusColor = (item: EstoqueResponse) => {
+    if (item.esgotado) return 'text-red-600 bg-red-50';
+    if (item.estoqueBaixo) return 'text-yellow-600 bg-yellow-50';
     return 'text-green-600 bg-green-50';
   };
 
-  const getStatusText = (item: EstoqueItem) => {
-    if (item.quantidade === 0) return 'Esgotado';
-    if (item.quantidade <= item.min_alerta) return 'Baixo';
+  const getStatusText = (item: EstoqueResponse) => {
+    if (item.esgotado) return 'Esgotado';
+    if (item.estoqueBaixo) return 'Baixo';
     return 'Disponível';
   };
 
@@ -153,12 +147,12 @@ export function Estoque() {
                       <span className="font-medium text-gray-900">
                         {item.quantidade} {item.unidade}
                       </span>
-                      {item.quantidade <= item.min_alerta && (
+                      {item.estoqueBaixo && (
                         <TrendingDown className="h-4 w-4 text-red-500" />
                       )}
                     </div>
                     <div className="text-xs text-gray-500">
-                      Min: {item.min_alerta} {item.unidade}
+                      Min: {item.minAlerta} {item.unidade}
                     </div>
                   </td>
                   <td className="py-4 px-4">
@@ -167,7 +161,7 @@ export function Estoque() {
                     </span>
                   </td>
                   <td className="py-4 px-4 text-gray-600">
-                    {item.valor_unitario ? `R$ ${item.valor_unitario.toFixed(2)}` : '-'}
+                    {item.valorUnitario ? `R$ ${item.valorUnitario.toFixed(2)}` : '-'}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center space-x-2">

@@ -1,70 +1,45 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase, Usuario } from '../lib/supabase';
+import { apiClient, UsuarioResponse, RegisterRequest } from '../lib/api';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
-  user: User | null;
-  usuario: Usuario | null;
+  user: UsuarioResponse | null;
   loading: boolean;
-  signUp: (email: string, password: string, userData: Partial<Usuario>) => Promise<void>;
+  signUp: (userData: RegisterRequest) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [user, setUser] = useState<UsuarioResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUsuario(session.user.id);
+    // Check for existing token
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        apiClient.setToken(token);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
       }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchUsuario(session.user.id);
-      } else {
-        setUsuario(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    
+    setLoading(false);
   }, []);
 
-  const fetchUsuario = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setUsuario(data);
-    } catch (error) {
-      console.error('Error fetching usuario:', error);
-    }
-  };
-
-  const signUp = async (email: string, password: string, userData: Partial<Usuario>) => {
+  const signUp = async (userData: RegisterRequest) => {
     try {
       // Validar idade (maior de 18 anos)
-      const birthDate = new Date(userData.data_nascimento!);
+      const birthDate = new Date(userData.dataNascimento);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -73,47 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Usuário deve ser maior de 18 anos');
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create usuario record
-        const { error: usuarioError } = await supabase
-          .from('usuarios')
-          .insert({
-            id: data.user.id,
-            email,
-            ...userData,
-          });
-
-        if (usuarioError) throw usuarioError;
-
-        // Create profissional or secretario record if needed
-        if (userData.tipo === 'PROFISSIONAL') {
-          await supabase
-            .from('profissionais')
-            .insert({
-              usuario_id: data.user.id,
-              especialidade: 'Medicina Geral',
-              crm: 'CRM-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            });
-        } else if (userData.tipo === 'SECRETARIO') {
-          await supabase
-            .from('secretarios')
-            .insert({
-              usuario_id: data.user.id,
-            });
-        }
-
-        toast.success('Cadastro realizado com sucesso!');
-      }
+      const response = await apiClient.register(userData);
+      toast.success('Cadastro realizado com sucesso!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -122,29 +58,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      const response = await apiClient.login(email, password);
+      
+      // Store token and user data
+      apiClient.setToken(response.token);
+      localStorage.setItem('userData', JSON.stringify(response.usuario));
+      setUser(response.usuario);
+      
       toast.success('Login realizado com sucesso!');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-
-      if (error) throw error;
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -153,8 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Clear local storage
+      apiClient.setToken(null);
+      localStorage.removeItem('userData');
+      setUser(null);
+      
       toast.success('Logout realizado com sucesso!');
     } catch (error: any) {
       toast.error(error.message);
@@ -164,11 +88,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
-    usuario,
     loading,
     signUp,
     signIn,
-    signInWithGoogle,
     signOut,
   };
 

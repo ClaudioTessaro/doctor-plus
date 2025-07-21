@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, FileText, Phone, Mail } from 'lucide-react';
-import { supabase, Paciente } from '../lib/supabase';
+import { apiClient, PacienteResponse } from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 
 export function Pacientes() {
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [pacientes, setPacientes] = useState<PacienteResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingPaciente, setEditingPaciente] = useState<Paciente | null>(null);
+  const [editingPaciente, setEditingPaciente] = useState<PacienteResponse | null>(null);
 
   useEffect(() => {
     fetchPacientes();
@@ -18,13 +18,8 @@ export function Pacientes() {
 
   const fetchPacientes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('pacientes')
-        .select('*')
-        .order('nome', { ascending: true });
-
-      if (error) throw error;
-      setPacientes(data || []);
+      const data = await apiClient.getPacientes();
+      setPacientes(data);
     } catch (error) {
       console.error('Error fetching pacientes:', error);
       toast.error('Erro ao carregar pacientes');
@@ -39,7 +34,7 @@ export function Pacientes() {
     paciente.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openModal = (paciente?: Paciente) => {
+  const openModal = (paciente?: PacienteResponse) => {
     setEditingPaciente(paciente || null);
     setShowModal(true);
   };
@@ -101,7 +96,7 @@ export function Pacientes() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredPacientes.map((paciente) => {
-                const idade = new Date().getFullYear() - new Date(paciente.data_nascimento).getFullYear();
+                const idade = paciente.idade;
                 
                 return (
                   <tr key={paciente.id} className="hover:bg-gray-50">
@@ -123,7 +118,7 @@ export function Pacientes() {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-gray-600">
-                      {format(new Date(paciente.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                      {format(new Date(paciente.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">

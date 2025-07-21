@@ -16,7 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const { usuario, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -29,7 +29,7 @@ export function Sidebar() {
   ];
 
   const filteredMenuItems = menuItems.filter(item => 
-    !item.roles || item.roles.includes(usuario?.tipo || '')
+    !item.roles || item.roles.includes(user?.tipo || '')
   );
 
   return (
@@ -75,10 +75,10 @@ export function Sidebar() {
       </nav>
 
       <div className="absolute bottom-4 left-4 right-4">
-        {!collapsed && usuario && (
+        {!collapsed && user && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="text-sm font-medium text-gray-900">{usuario.nome}</div>
-            <div className="text-xs text-gray-500">{usuario.tipo}</div>
+            <div className="text-sm font-medium text-gray-900">{user.nome}</div>
+            <div className="text-xs text-gray-500">{user.tipo}</div>
           </div>
         )}
         <button

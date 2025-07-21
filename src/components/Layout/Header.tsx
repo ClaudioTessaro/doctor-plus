@@ -2,7 +2,7 @@ import { Bell, Search, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 export function Header() {
-  const { usuario } = useAuth();
+  const { user } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -33,8 +33,8 @@ export function Header() {
               <User className="h-4 w-4 text-white" />
             </div>
             <div className="text-sm">
-              <div className="font-medium text-gray-900">{usuario?.nome}</div>
-              <div className="text-gray-500">{usuario?.tipo}</div>
+              <div className="font-medium text-gray-900">{user?.nome}</div>
+              <div className="text-gray-500">{user?.tipo}</div>
             </div>
           </div>
         </div>

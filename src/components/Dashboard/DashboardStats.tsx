@@ -1,6 +1,6 @@
 import { Users, Calendar, FileText, Package, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { apiClient } from '../../lib/api';
 
 interface Stats {
   totalPacientes: number;
@@ -23,38 +23,23 @@ export function DashboardStats() {
 
   const fetchStats = async () => {
     try {
-      // Total de pacientes
-      const { count: totalPacientes } = await supabase
-        .from('pacientes')
-        .select('*', { count: 'exact', head: true });
-
-      // Consultas hoje
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-
-      const { count: consultasHoje } = await supabase
-        .from('consultas')
-        .select('*', { count: 'exact', head: true })
-        .gte('data_hora', startOfDay)
-        .lte('data_hora', endOfDay);
-
-      // Total de prontuários
-      const { count: prontuarios } = await supabase
-        .from('historicos')
-        .select('*', { count: 'exact', head: true });
-
-      // Itens em alerta de estoque
-      const { count: estoqueAlerta } = await supabase
-        .from('estoque')
-        .select('*', { count: 'exact', head: true })
-        .lt('quantidade', 10);
+      // Buscar dados das APIs
+      const [pacientes, consultasHoje, historicos, estoqueAlerta] = await Promise.all([
+        apiClient.getPacientes(),
+        apiClient.getConsultas(),
+        apiClient.getHistoricos(),
+        apiClient.getEstoqueBaixo(),
+      ]);
 
       setStats({
-        totalPacientes: totalPacientes || 0,
-        consultasHoje: consultasHoje || 0,
-        prontuarios: prontuarios || 0,
-        estoqueAlerta: estoqueAlerta || 0,
+        totalPacientes: pacientes.length,
+        consultasHoje: consultasHoje.filter(c => {
+          const today = new Date().toDateString();
+          const consultaDate = new Date(c.dataHora).toDateString();
+          return consultaDate === today;
+        }).length,
+        prontuarios: historicos.length,
+        estoqueAlerta: estoqueAlerta.length,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

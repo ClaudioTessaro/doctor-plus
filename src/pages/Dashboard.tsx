@@ -3,10 +3,10 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, User, AlertCircle } from 'lucide-react';
 import { DashboardStats } from '../components/Dashboard/DashboardStats';
 import { useEffect, useState } from 'react';
-import { supabase, Consulta } from '../lib/supabase';
+import { apiClient, ConsultaResponse } from '../lib/api';
 
 export function Dashboard() {
-  const [proximasConsultas, setProximasConsultas] = useState<Consulta[]>([]);
+  const [proximasConsultas, setProximasConsultas] = useState<ConsultaResponse[]>([]);
 
   useEffect(() => {
     fetchProximasConsultas();
@@ -14,19 +14,8 @@ export function Dashboard() {
 
   const fetchProximasConsultas = async () => {
     try {
-      const { data, error } = await supabase
-        .from('consultas')
-        .select(`
-          *,
-          paciente:pacientes(*),
-          profissional:profissionais(*, usuario:usuarios(*))
-        `)
-        .gte('data_hora', new Date().toISOString())
-        .order('data_hora', { ascending: true })
-        .limit(5);
-
-      if (error) throw error;
-      setProximasConsultas(data || []);
+      const consultas = await apiClient.getConsultas();
+      setProximasConsultas(consultas.slice(0, 5));
     } catch (error) {
       console.error('Error fetching consultas:', error);
     }
@@ -71,11 +60,11 @@ export function Dashboard() {
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
                       <Clock className="h-4 w-4 mr-1" />
-                      {format(new Date(consulta.data_hora), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                      {format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <User className="h-4 w-4 mr-1" />
-                      Dr. {consulta.profissional?.usuario?.nome}
+                      Dr. {consulta.profissional?.usuario.nome}
                     </div>
                   </div>
                 </div>

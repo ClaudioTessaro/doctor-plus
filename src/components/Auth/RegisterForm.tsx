@@ -12,7 +12,9 @@ const registerSchema = z.object({
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   confirmPassword: z.string(),
   tipo: z.enum(['PROFISSIONAL', 'SECRETARIO']),
-  data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
+  dataNascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
+  especialidade: z.string().optional(),
+  crm: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Senhas não conferem",
   path: ["confirmPassword"],
@@ -35,10 +37,14 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true);
     try {
-      await signUp(data.email, data.password, {
+      await signUp({
         nome: data.nome,
+        email: data.email,
+        senha: data.password,
         tipo: data.tipo,
-        data_nascimento: data.data_nascimento,
+        dataNascimento: data.dataNascimento,
+        especialidade: data.tipo === 'PROFISSIONAL' ? data.especialidade || 'Medicina Geral' : undefined,
+        crm: data.tipo === 'PROFISSIONAL' ? data.crm || `CRM-${Math.random().toString(36).substr(2, 9).toUpperCase()}` : undefined,
       });
     } catch (error) {
       // Error handled by auth context
@@ -103,13 +109,13 @@ export function RegisterForm() {
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  {...register('data_nascimento')}
+                  {...register('dataNascimento')}
                   type="date"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              {errors.data_nascimento && (
-                <p className="mt-1 text-sm text-red-600">{errors.data_nascimento.message}</p>
+              {errors.dataNascimento && (
+                <p className="mt-1 text-sm text-red-600">{errors.dataNascimento.message}</p>
               )}
             </div>
 
@@ -128,6 +134,32 @@ export function RegisterForm() {
               {errors.tipo && (
                 <p className="mt-1 text-sm text-red-600">{errors.tipo.message}</p>
               )}
+            </div>
+
+            {/* Campos específicos para profissional */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Especialidade (opcional)
+                </label>
+                <input
+                  {...register('especialidade')}
+                  type="text"
+                  placeholder="Ex: Cardiologia"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  CRM (opcional)
+                </label>
+                <input
+                  {...register('crm')}
+                  type="text"
+                  placeholder="Ex: CRM-12345"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
 
             <div>

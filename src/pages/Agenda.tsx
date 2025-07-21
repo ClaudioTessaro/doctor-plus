@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { supabase, Consulta } from '../lib/supabase';
+import { apiClient, ConsultaResponse } from '../lib/api';
 
 export function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [consultas, setConsultas] = useState<Consulta[]>([]);
+  const [consultas, setConsultas] = useState<ConsultaResponse[]>([]);
   const [view, setView] = useState<'day' | 'week'>('week');
   const [loading, setLoading] = useState(true);
 
@@ -28,19 +28,11 @@ export function Agenda() {
         endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
       }
 
-      const { data, error } = await supabase
-        .from('consultas')
-        .select(`
-          *,
-          paciente:pacientes(*),
-          profissional:profissionais(*, usuario:usuarios(*))
-        `)
-        .gte('data_hora', startDate.toISOString())
-        .lte('data_hora', endDate.toISOString())
-        .order('data_hora', { ascending: true });
-
-      if (error) throw error;
-      setConsultas(data || []);
+      const data = await apiClient.getConsultasByPeriodo(
+        startDate.toISOString(),
+        endDate.toISOString()
+      );
+      setConsultas(data);
     } catch (error) {
       console.error('Error fetching consultas:', error);
     } finally {
@@ -69,7 +61,7 @@ export function Agenda() {
     dayEnd.setHours(23, 59, 59, 999);
 
     return consultas.filter(consulta => {
-      const consultaDate = new Date(consulta.data_hora);
+      const consultaDate = new Date(consulta.dataHora);
       return consultaDate >= dayStart && consultaDate <= dayEnd;
     });
   };
@@ -84,7 +76,7 @@ export function Agenda() {
     }
   };
 
-  const renderConsulta = (consulta: Consulta) => (
+  const renderConsulta = (consulta: ConsultaResponse) => (
     <div
       key={consulta.id}
       className={`p-3 rounded-lg border-l-4 ${
@@ -108,10 +100,10 @@ export function Agenda() {
       <div className="text-sm text-gray-600">
         <div className="flex items-center mb-1">
           <Clock className="h-4 w-4 mr-1" />
-          {format(new Date(consulta.data_hora), 'HH:mm', { locale: ptBR })}
-          <span className="ml-2">({consulta.duracao_minutos}min)</span>
+          {format(new Date(consulta.dataHora), 'HH:mm', { locale: ptBR })}
+          <span className="ml-2">({consulta.duracaoMinutos}min)</span>
         </div>
-        <div>Dr. {consulta.profissional?.usuario?.nome}</div>
+        <div>Dr. {consulta.profissional?.usuario.nome}</div>
         {consulta.observacoes && (
           <div className="mt-2 text-xs text-gray-500">
             {consulta.observacoes}
@@ -232,7 +224,7 @@ export function Agenda() {
                           {consulta.paciente?.nome}
                         </div>
                         <div className="text-gray-600">
-                          {format(new Date(consulta.data_hora), 'HH:mm')}
+                          {format(new Date(consulta.dataHora), 'HH:mm')}
                         </div>
                       </div>
                     ))}
