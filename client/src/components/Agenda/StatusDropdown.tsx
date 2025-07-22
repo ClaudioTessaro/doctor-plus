@@ -5,9 +5,10 @@ import { ConsultaResponse } from '../../lib/api';
 interface StatusDropdownProps {
   consulta: ConsultaResponse;
   onStatusChange: (consulta: ConsultaResponse, novoStatus: string) => void;
+  compact?: boolean;
 }
 
-export function StatusDropdown({ consulta, onStatusChange }: StatusDropdownProps) {
+export function StatusDropdown({ consulta, onStatusChange, compact = false }: StatusDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const statusOptions = [
@@ -32,11 +33,11 @@ export function StatusDropdown({ consulta, onStatusChange }: StatusDropdownProps
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center space-x-1"
+        className={`${compact ? 'p-0.5' : 'p-2'} text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center ${compact ? 'space-x-0' : 'space-x-1'}`}
         title="Alterar status"
       >
-        <span className="text-sm">●●●</span>
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className={compact ? "text-xs" : "text-sm"}>●●●</span>
+        {!compact && <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
       </button>
 
       {isOpen && (

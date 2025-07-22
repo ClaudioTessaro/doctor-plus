@@ -355,49 +355,82 @@ export function Agenda() {
         <StatusBadge status={consulta.status} size={compact ? 'sm' : 'md'} />
       </div>
       
-      <div className="flex items-center justify-between">
-        <div className="flex items-center text-sm text-gray-600 space-x-4">
+      <div className={compact ? "space-y-1" : "flex items-center justify-between"}>
+        <div className={`flex items-center text-sm text-gray-600 ${compact ? 'justify-between' : 'space-x-4'}`}>
           <div className="flex items-center">
             <Clock className="h-4 w-4 mr-1" />
             {format(new Date(consulta.dataHora), 'HH:mm', { locale: ptBR })}
             <span className="ml-1">({consulta.duracaoMinutos}min)</span>
           </div>
           {consulta.valor && (
-            <div className="text-green-600 font-medium">
+            <div className="text-green-600 font-medium text-xs">
               R$ {consulta.valor.toFixed(2)}
             </div>
           )}
         </div>
         
-        <div className={`flex items-center ${compact ? 'space-x-0.5' : 'space-x-1'}`}>
-          {consulta.status === 'AGENDADA' && (
+        {compact ? (
+          <div className="flex items-center justify-between">
+            {consulta.status === 'AGENDADA' && (
+              <button
+                onClick={() => handleConfirmarConsulta(consulta)}
+                className="p-0.5 text-green-600 hover:bg-green-100 rounded transition-colors"
+                title="Confirmar consulta"
+              >
+                <CheckCircle className="h-3 w-3" />
+              </button>
+            )}
+            <StatusDropdown 
+              consulta={consulta}
+              onStatusChange={handleAlterarStatus}
+              compact={true}
+            />
             <button
-              onClick={() => handleConfirmarConsulta(consulta)}
-              className={`${compact ? 'p-0.5' : 'p-1'} text-green-600 hover:bg-green-100 rounded transition-colors`}
-              title="Confirmar consulta"
+              onClick={() => openModal(consulta)}
+              className="p-0.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+              title="Editar consulta"
             >
-              <CheckCircle className={`${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              <Edit className="h-3 w-3" />
             </button>
-          )}
-          <StatusDropdown 
-            consulta={consulta}
-            onStatusChange={handleAlterarStatus}
-          />
-          <button
-            onClick={() => openModal(consulta)}
-            className={`${compact ? 'p-0.5' : 'p-1'} text-blue-600 hover:bg-blue-100 rounded transition-colors`}
-            title="Editar consulta"
-          >
-            <Edit className={`${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
-          </button>
-          <button
-            onClick={() => openDeleteDialog(consulta)}
-            className={`${compact ? 'p-0.5' : 'p-1'} text-red-600 hover:bg-red-100 rounded transition-colors`}
-            title="Cancelar consulta"
-          >
-            <XCircle className={`${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
-          </button>
-        </div>
+            <button
+              onClick={() => openDeleteDialog(consulta)}
+              className="p-0.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+              title="Cancelar consulta"
+            >
+              <XCircle className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1">
+            {consulta.status === 'AGENDADA' && (
+              <button
+                onClick={() => handleConfirmarConsulta(consulta)}
+                className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
+                title="Confirmar consulta"
+              >
+                <CheckCircle className="h-4 w-4" />
+              </button>
+            )}
+            <StatusDropdown 
+              consulta={consulta}
+              onStatusChange={handleAlterarStatus}
+            />
+            <button
+              onClick={() => openModal(consulta)}
+              className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+              title="Editar consulta"
+            >
+              <Edit className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => openDeleteDialog(consulta)}
+              className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+              title="Cancelar consulta"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
       
       {consulta.observacoes && !compact && (
