@@ -55,14 +55,14 @@ export function Estoque() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Unificar useEffects para evitar chamadas duplicadas
   useEffect(() => {
     fetchEstoque();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, debouncedSearchTerm]);
 
+  // Reset page when search term changes
   useEffect(() => {
-    // Reset page when search term changes
     setCurrentPage(0);
-    fetchEstoque();
   }, [debouncedSearchTerm]);
 
   const fetchEstoque = async () => {

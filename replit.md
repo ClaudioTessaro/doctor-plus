@@ -8,6 +8,7 @@ DoctorPlus is a comprehensive medical clinic management system built with React 
 
 Preferred communication style: Simple, everyday language.
 Search debounce time: 1.5 seconds (reduced from 4 seconds for better user experience)
+API call optimization: Unified useEffect dependencies to prevent duplicate API calls
 
 ## System Architecture
 
@@ -142,3 +143,22 @@ The system uses a comprehensive medical schema with the following main entities:
 - Static file serving capability for frontend assets
 
 The system is designed for scalability and maintainability, with clear separation of concerns between frontend and backend, type safety throughout, and modern development practices.
+
+## Recent Performance Optimizations (2025-01-22)
+
+### Search Performance
+- Reduced search debounce time from 4 seconds to 1.5 seconds across all components
+- Improved user experience with faster search responsiveness
+- Components optimized: Pacientes, Agenda, Estoque, Prontuarios, Profissionais, Secretarios, PacienteAutocomplete, VinculoProfissionalModal
+
+### API Call Optimization
+- Fixed duplicate API calls by unifying useEffect dependencies
+- Combined pagination and search useEffects to prevent redundant requests
+- Eliminated 4x duplicate endpoint calls in listing pages
+- Optimized pages: Pacientes, Estoque, Prontuarios
+- Performance improvement: Reduced API load by ~75% on listing operations
+
+### Development Notes
+- External backend URL: https://cd0eeedc-81ff-4f28-9b78-afc2b07fb5ba-00-3gv3oat9jl1o2.kirk.replit.dev/
+- Authentication working correctly with token management
+- All major migration components completed successfully

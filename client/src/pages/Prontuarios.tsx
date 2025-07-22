@@ -52,14 +52,14 @@ export function Prontuarios() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Unificar useEffects para evitar chamadas duplicadas
   useEffect(() => {
     fetchData();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, debouncedSearchTerm]);
 
+  // Reset page when search term changes
   useEffect(() => {
-    // Reset page when search term changes
     setCurrentPage(0);
-    fetchData();
   }, [debouncedSearchTerm]);
 
   const fetchData = async () => {

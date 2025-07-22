@@ -56,14 +56,14 @@ export function Pacientes() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Unificar useEffects para evitar chamadas duplicadas
   useEffect(() => {
     fetchPacientes();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, debouncedSearchTerm]);
 
+  // Reset page when search term changes
   useEffect(() => {
-    // Reset page when search term changes
     setCurrentPage(0);
-    fetchPacientes();
   }, [debouncedSearchTerm]);
 
   const fetchPacientes = async () => {
