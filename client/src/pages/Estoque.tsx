@@ -55,14 +55,30 @@ export function Estoque() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Unificar useEffects para evitar chamadas duplicadas
+  // Evitar chamadas duplicadas usando state de controle
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      fetchEstoque();
+      return;
+    }
+    
+    // Para mudanças de página e pageSize
     fetchEstoque();
-  }, [currentPage, pageSize, debouncedSearchTerm]);
+  }, [currentPage, pageSize]);
 
-  // Reset page when search term changes
   useEffect(() => {
+    if (isInitialLoad) return;
+    
+    // Reset page quando busca muda e fetch
     setCurrentPage(0);
+    const timer = setTimeout(() => {
+      fetchEstoque();
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, [debouncedSearchTerm]);
 
   const fetchEstoque = async () => {

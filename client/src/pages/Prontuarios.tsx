@@ -52,14 +52,30 @@ export function Prontuarios() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Unificar useEffects para evitar chamadas duplicadas
+  // Evitar chamadas duplicadas usando state de controle
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      fetchData();
+      return;
+    }
+    
+    // Para mudanças de página e pageSize
     fetchData();
-  }, [currentPage, pageSize, debouncedSearchTerm]);
+  }, [currentPage, pageSize]);
 
-  // Reset page when search term changes
   useEffect(() => {
+    if (isInitialLoad) return;
+    
+    // Reset page quando busca muda e fetch
     setCurrentPage(0);
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, [debouncedSearchTerm]);
 
   const fetchData = async () => {

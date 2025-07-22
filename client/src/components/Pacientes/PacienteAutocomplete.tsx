@@ -53,7 +53,7 @@ export function PacienteAutocomplete({
       clearTimeout(debounceRef.current);
     }
 
-    // Configurar novo timeout de 4 segundos
+    // Configurar novo timeout de 1.5 segundos
     debounceRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 1500);

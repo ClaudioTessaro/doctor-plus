@@ -4,6 +4,7 @@ const API_BASE_URL = 'https://cd0eeedc-81ff-4f28-9b78-afc2b07fb5ba-00-3gv3oat9jl
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
+  private requestCache: Map<string, Promise<any>> = new Map();
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
@@ -24,6 +25,15 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const method = options.method || 'GET';
+    
+    // Para requisições GET, usar cache para evitar duplicatas
+    const cacheKey = `${method}:${endpoint}:${JSON.stringify(options.body || '')}`;
+    
+    if (method === 'GET' && this.requestCache.has(cacheKey)) {
+      console.log('📋 Using cached request for:', endpoint);
+      return this.requestCache.get(cacheKey);
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -39,8 +49,27 @@ class ApiClient {
       headers,
     };
 
+    const requestPromise = this.executeRequest<T>(url, config, endpoint);
+    
+    // Cache apenas requisições GET por 2 segundos
+    if (method === 'GET') {
+      this.requestCache.set(cacheKey, requestPromise);
+      setTimeout(() => {
+        this.requestCache.delete(cacheKey);
+      }, 2000);
+    }
+    
+    return requestPromise;
+  }
+
+  private async executeRequest<T>(url: string, config: RequestInit, endpoint: string): Promise<T> {
     try {
-      console.log('Making API request to:', url);
+      console.log('🌐 API Request:', {
+        method: config.method || 'GET',
+        endpoint: endpoint,
+        timestamp: new Date().toISOString(),
+        callStack: new Error().stack?.split('\n')[3]?.trim()
+      });
       const response = await fetch(url, config);
       
       if (!response.ok) {

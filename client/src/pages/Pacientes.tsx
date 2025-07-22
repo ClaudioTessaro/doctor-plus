@@ -56,14 +56,31 @@ export function Pacientes() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Unificar useEffects para evitar chamadas duplicadas
+  // Evitar chamadas duplicadas usando useCallback e refs
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      fetchPacientes();
+      return;
+    }
+    
+    // Para mudanças de página e pageSize
     fetchPacientes();
-  }, [currentPage, pageSize, debouncedSearchTerm]);
+  }, [currentPage, pageSize]);
 
-  // Reset page when search term changes
   useEffect(() => {
+    if (isInitialLoad) return;
+    
+    // Reset page quando busca muda e fetch
     setCurrentPage(0);
+    // Delay pequeno para evitar race condition com o reset da página
+    const timer = setTimeout(() => {
+      fetchPacientes();
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, [debouncedSearchTerm]);
 
   const fetchPacientes = async () => {
