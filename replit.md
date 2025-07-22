@@ -7,6 +7,7 @@ DoctorPlus is a comprehensive medical clinic management system built with React 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Search debounce time: 1.5 seconds (reduced from 4 seconds for better user experience)
 
 ## System Architecture
 

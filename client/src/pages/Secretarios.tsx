@@ -35,7 +35,7 @@ export function Secretarios() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 4000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
