@@ -27,6 +27,7 @@ export function Agenda() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [dayOfWeekFilter, setDayOfWeekFilter] = useState<string>('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   // Modal states
@@ -331,7 +332,15 @@ export function Agenda() {
     const matchSearch = consulta.paciente?.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                        consulta.profissional?.usuario.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
     const matchStatus = !statusFilter || consulta.status === statusFilter;
-    return matchSearch && matchStatus;
+    
+    let matchDayOfWeek = true;
+    if (dayOfWeekFilter) {
+      const consultaDate = new Date(consulta.dataHora);
+      const dayOfWeek = consultaDate.getDay();
+      matchDayOfWeek = dayOfWeek.toString() === dayOfWeekFilter;
+    }
+    
+    return matchSearch && matchStatus && matchDayOfWeek;
   });
 
   const renderConsulta = (consulta: ConsultaResponse, compact = false) => (
@@ -489,6 +498,22 @@ export function Agenda() {
               <option value="CONFIRMADA">Confirmada</option>
               <option value="CANCELADA">Cancelada</option>
               <option value="REALIZADA">Realizada</option>
+            </select>
+
+            {/* Filtro por Dia da Semana */}
+            <select
+              value={dayOfWeekFilter}
+              onChange={(e) => setDayOfWeekFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="">Todos os dias</option>
+              <option value="0">Domingo</option>
+              <option value="1">Segunda-feira</option>
+              <option value="2">Terça-feira</option>
+              <option value="3">Quarta-feira</option>
+              <option value="4">Quinta-feira</option>
+              <option value="5">Sexta-feira</option>
+              <option value="6">Sábado</option>
             </select>
 
             {/* Seletor de Visualização */}
